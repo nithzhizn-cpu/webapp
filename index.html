@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Secure Messenger — WebApp (v3)</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="title">🔒 Secure Messenger (v3)</div>
+    <div class="controls">
+      <select id="modeSelect">
+        <option value="A">E2E (A)</option>
+        <option value="B" selected>Server-encrypted (B)</option>
+      </select>
+      <button id="genKeyBtn">🔑 Згенерувати ключ (E2E)</button>
+      <button id="regKeyBtn">📤 Реєструвати public key</button>
+    </div>
+  </div>
+
+  <div class="chat">
+    <div id="messages" class="messages"></div>
+    <div class="composer">
+      <input id="recipientId" placeholder="Кому (user_id) — залиште 0 для загального" />
+      <input id="messageInput" placeholder="Введіть повідомлення..." />
+      <button id="sendBtn">➡️</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <small>Приватний ключ зберігається в IndexedDB. У режимі A повідомлення дешифруються тільки у клієнта.</small>
+  </div>
+
+  <script src="/static/app_v3.js"></script>
+</body>
+</html>
