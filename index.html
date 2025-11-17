@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpySignal WebApp — E2EE</title>
+    <title>SpySignal WebApp — E2EE Calls & Files</title>
 
     <style>
         :root {
@@ -138,7 +138,6 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
         }
 
         .card-subtitle {
@@ -204,6 +203,12 @@
             border-radius: 999px;
         }
 
+        .btn-danger {
+            background: rgba(120, 18, 33, 0.95);
+            border: 1px solid rgba(255, 102, 119, 0.8);
+            color: #ffd7dd;
+        }
+
         .hint {
             font-size: 11px;
             color: var(--text-muted);
@@ -255,7 +260,6 @@
             justify-content: space-between;
             gap: 8px;
             margin-bottom: 4px;
-            flex-wrap: wrap;
         }
 
         .chat-peer {
@@ -270,6 +274,35 @@
         .typing-indicator {
             font-size: 11px;
             color: var(--text-muted);
+            min-height: 14px;
+        }
+
+        .call-controls {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .call-btn {
+            padding: 5px 9px;
+            border-radius: 999px;
+            border: 1px solid rgba(61, 123, 253, 0.6);
+            background: rgba(10, 20, 40, 0.95);
+            color: #e5f0ff;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .call-btn.danger {
+            border-color: rgba(255, 102, 119, 0.8);
+            background: rgba(80, 16, 26, 0.95);
+            color: #ffd8dd;
+        }
+
+        .call-status {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 3px;
             min-height: 14px;
         }
 
@@ -308,6 +341,33 @@
             margin-top: 2px;
         }
 
+        .msg-file {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .msg-file-title {
+            font-size: 13px;
+        }
+
+        .msg-file-meta {
+            font-size: 10px;
+            color: #d4def5;
+        }
+
+        .msg-file-btn {
+            margin-top: 2px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(207, 222, 255, 0.7);
+            background: rgba(8, 16, 34, 0.95);
+            color: #f3f5ff;
+            font-size: 11px;
+            cursor: pointer;
+            align-self: flex-start;
+        }
+
         @keyframes fadeUp {
             to {
                 opacity: 1;
@@ -324,6 +384,23 @@
 
         .chat-input {
             flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chat-attach-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #090d18;
+            color: #e5ecff;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
         }
 
         .chat-send-btn {
@@ -340,30 +417,6 @@
 
         .chat-send-btn span {
             font-size: 18px;
-        }
-
-        .chat-tools {
-            display: flex;
-            gap: 6px;
-            margin-top: 6px;
-            justify-content: flex-end;
-        }
-
-        .tool-btn {
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            background: #060a13;
-            color: var(--text-muted);
-            font-size: 11px;
-            padding: 4px 8px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-        }
-
-        .tool-btn span {
-            font-size: 13px;
         }
 
         .footer-hint {
@@ -425,6 +478,10 @@
                 transform: translate(-50%, 0);
             }
         }
+
+        audio {
+            display: none;
+        }
     </style>
 </head>
 
@@ -437,7 +494,7 @@
         </div>
         <div class="header-text">
             <h1>SpySignal <span class="pill">stealth e2ee</span></h1>
-            <div class="tagline">Шифрований месенджер у стилі шпигунів</div>
+            <div class="tagline">Шифрований месенджер і дзвінки</div>
         </div>
     </header>
 
@@ -470,17 +527,14 @@
         <div class="hint" id="my-id-hint" style="display:none;"></div>
     </section>
 
-    <!-- SEARCH + CHAT -->
+    <!-- MAIN: SEARCH + CHAT -->
     <section class="two-blocks" id="main-blocks" style="display:none;">
 
-        <!-- SEARCH CARD -->
+        <!-- SEARCH -->
         <div class="card">
             <div class="card-title">
                 <span>2 · Пошук контакту</span>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn-small btn-secondary" onclick="rotateKeys(true)">Оновити ключ</button>
-                    <button class="btn-small btn-secondary" onclick="backToLogin()">Змінити агента</button>
-                </div>
+                <button class="btn-small btn-secondary" onclick="backToLogin()">Змінити агента</button>
             </div>
             <div class="card-subtitle">
                 Введи ID або нікнейм іншого агента, з яким хочеш встановити зашифрований канал.
@@ -492,19 +546,28 @@
             <div class="search-results" id="result"></div>
         </div>
 
-        <!-- CHAT CARD -->
+        <!-- CHAT + CALLS + FILES -->
         <div class="card" id="chat-card" style="opacity:0.5; pointer-events:none;">
             <div class="chat-header-row">
-                <div class="chat-peer" id="chat-peer">
-                    3 · Чат <span>(обери співрозмовника)</span>
+                <div>
+                    <div class="chat-peer" id="chat-peer">
+                        3 · Чат <span>(обери співрозмовника)</span>
+                    </div>
+                    <div class="typing-indicator" id="typing-indicator"></div>
                 </div>
-                <div class="typing-indicator" id="typing-indicator"></div>
+                <div class="call-controls">
+                    <button class="call-btn" onclick="startCall()">📞 Call</button>
+                    <button class="call-btn danger" onclick="endCall()">⛔ End</button>
+                </div>
             </div>
+
+            <div class="call-status" id="call-status"></div>
 
             <div class="chat-window" id="chat"></div>
 
             <div class="chat-input-row">
                 <div class="chat-input">
+                    <button class="chat-attach-btn" onclick="document.getElementById('file-input').click()">📎</button>
                     <input id="msg" class="input" placeholder="Зашифроване повідомлення…" oninput="onTyping()">
                 </div>
                 <button class="chat-send-btn" onclick="sendMessage()">
@@ -512,55 +575,45 @@
                 </button>
             </div>
 
-            <!-- TOOLS: FILE + CALL -->
-            <div class="chat-tools">
-                <input id="file-input" type="file" style="display:none" onchange="sendFile(event)">
-                <button class="tool-btn" onclick="document.getElementById('file-input').click()">
-                    <span>📎</span> Файл
-                </button>
-                <button class="tool-btn" onclick="startCall()">
-                    <span>📞</span> Дзвінок
-                </button>
-            </div>
-
             <div class="footer-hint">
-                Всі текст і файли шифруються <strong>на пристроях</strong>, сервер бачить лише випадковий набір байтів.
+                Всі повідомлення, файли та дзвінки шифруються <strong>на пристроях</strong>. Сервер бачить тільки зашифровані дані.
             </div>
         </div>
 
     </section>
 
     <div class="toast" id="toast"></div>
+
+    <!-- Схований інпут для файлів -->
+    <input type="file" id="file-input" style="display:none" onchange="sendEncryptedFile(event)">
+
+    <!-- Аудіо для дзвінка -->
+    <audio id="remote-audio" autoplay playsinline></audio>
 </div>
 
 <script>
-    // 🔗 ПІДСТАВ СВІЙ RAILWAY ДОМЕН
+    // ⚙️ URL твого бекенду Railway
     const API_BASE = "https://web-production-16ba1.up.railway.app";
 
+    // ========= ГЛОБАЛЬНІ ЗМІННІ =========
     let token = null;
     let myID = null;
     let myUsername = null;
     let peerID = null;
     let peerUsername = null;
 
-    // Telegram WebApp user
-    let telegramUserId = null;
-    let tg = null;
-
     let lastMessagesCount = 0;
     let pollingInterval = null;
     let typingTimeout = null;
 
-    // E2EE
+    // Forward secrecy: міняємо ключі раз в N повідомлень
+    const KEY_ROTATION_EVERY = 30;
+    let sentMessagesSinceKeyRotate = 0;
+
+    // E2EE ключі
     let myPrivateKey = null;
     let myPublicJwk = null;
-    const LOCAL_KEY_STORAGE = "spysignal_e2ee_keypair_v1";
-
-    // Forward secrecy (просте)
-    let lastKeyRotation = 0;
-    let messagesSinceRotation = 0;
-    const ROTATION_MESSAGE_LIMIT = 50;           // після скількох повідомлень оновлювати ключ
-    const ROTATION_TIME_MS = 24 * 60 * 60 * 1000; // раз на 24 години
+    const LOCAL_KEY_STORAGE = "spysignal_e2ee_keypair_v2_rotating";
 
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
@@ -569,9 +622,23 @@
     const statusLabel = document.getElementById("status-label");
     const statusUrl = document.getElementById("status-url");
     const toastEl = document.getElementById("toast");
+    const callStatusEl = document.getElementById("call-status");
 
     statusUrl.textContent = API_BASE.replace("https://", "");
 
+    // Файл-кеш після дешифрування
+    const fileCache = {};
+
+    // ========= WebRTC дзвінки =========
+    let pc = null;
+    let localStream = null;
+    let remoteStream = null;
+    let isCalling = false;
+    let isInCall = false;
+    let callRole = null; // "caller" | "callee"
+    let signalingPollInterval = null;
+
+    // ========= УТИЛІТИ =========
     function showToast(msg, isError = false) {
         toastEl.textContent = msg;
         toastEl.className = "toast show" + (isError ? " toast-error" : "");
@@ -596,42 +663,8 @@
         return bytes.buffer;
     }
 
-    function escapeHtml(str) {
-        return str.replace(/[&<>"']/g, c => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;'
-        }[c]));
-    }
-
-    // ---------- E2EE KEYPAIR + ROTATION ----------
-
-    async function ensureKeyPair(forceNew = false) {
-        if (!forceNew && myPrivateKey && myPublicJwk) return;
-
-        if (!forceNew) {
-            const raw = localStorage.getItem(LOCAL_KEY_STORAGE);
-            if (raw) {
-                try {
-                    const parsed = JSON.parse(raw);
-                    myPublicJwk = parsed.publicJwk;
-                    const privJwk = parsed.privateJwk;
-                    myPrivateKey = await crypto.subtle.importKey(
-                        "jwk",
-                        privJwk,
-                        { name: "ECDH", namedCurve: "P-256" },
-                        false,
-                        ["deriveKey", "deriveBits"]
-                    );
-                    return;
-                } catch (e) {
-                    console.warn("Помилка читання локального ключа, генеруємо новий", e);
-                }
-            }
-        }
-
+    // ========= E2EE КЛЮЧІ (з ротацією) =========
+    async function generateAndStoreKeyPair() {
         const keyPair = await crypto.subtle.generateKey(
             { name: "ECDH", namedCurve: "P-256" },
             true,
@@ -650,48 +683,59 @@
         );
     }
 
-    async function uploadPubKey() {
-        if (!token || !myPublicJwk) return;
-        try {
-            await fetch(`${API_BASE}/api/pubkey`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + token
-                },
-                body: JSON.stringify({ pubkey: JSON.stringify(myPublicJwk) })
-            });
-        } catch (e) {
-            console.warn("Помилка завантаження pubkey", e);
+    async function ensureKeyPair() {
+        if (myPrivateKey && myPublicJwk) return;
+
+        const raw = localStorage.getItem(LOCAL_KEY_STORAGE);
+        if (raw) {
+            try {
+                const parsed = JSON.parse(raw);
+                myPublicJwk = parsed.publicJwk;
+                const privJwk = parsed.privateJwk;
+                myPrivateKey = await crypto.subtle.importKey(
+                    "jwk",
+                    privJwk,
+                    { name: "ECDH", namedCurve: "P-256" },
+                    false,
+                    ["deriveKey", "deriveBits"]
+                );
+                return;
+            } catch (e) {
+                console.warn("Помилка читання локального ключа, генеруємо новий", e);
+            }
         }
+
+        await generateAndStoreKeyPair();
     }
 
-    async function rotateKeys(manual = false) {
-        await ensureKeyPair(true);
-        await uploadPubKey();
-        lastKeyRotation = Date.now();
-        messagesSinceRotation = 0;
-        showToast(
-            manual
-                ? "Ключі E2EE оновлено вручну. Старі повідомлення можуть бути недоступні."
-                : "Ключі E2EE автоматично оновлено."
-        );
-    }
+    async function rotateKeyPairIfNeeded() {
+        sentMessagesSinceKeyRotate++;
+        if (sentMessagesSinceKeyRotate >= KEY_ROTATION_EVERY) {
+            sentMessagesSinceKeyRotate = 0;
+            await generateAndStoreKeyPair();
 
-    async function maybeRotateKeys() {
-        const now = Date.now();
-        if (!lastKeyRotation) lastKeyRotation = now;
-        if (
-            now - lastKeyRotation > ROTATION_TIME_MS ||
-            messagesSinceRotation >= ROTATION_MESSAGE_LIMIT
-        ) {
-            await rotateKeys(false);
+            // Відправляємо новий pubkey на сервер
+            if (token) {
+                try {
+                    await fetch(`${API_BASE}/api/pubkey`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token
+                        },
+                        body: JSON.stringify({ pubkey: JSON.stringify(myPublicJwk) })
+                    });
+                    showToast("Оновлено E2EE ключ (forward secrecy)");
+                } catch (e) {
+                    console.warn("Не вдалося оновити pubkey після ротації", e);
+                }
+            }
         }
     }
 
     async function getAesKeyForPeer(peerPubJwk) {
         if (!myPrivateKey) {
-            await ensureKeyPair(false);
+            await ensureKeyPair();
         }
         const peerPubKey = await crypto.subtle.importKey(
             "jwk",
@@ -740,8 +784,7 @@
         return decoder.decode(plainBuf);
     }
 
-    // ---------- HEALTH CHECK ----------
-
+    // ========= ПІДКЛЮЧЕННЯ ДО СЕРВЕРА =========
     async function checkHealth() {
         try {
             const res = await fetch(`${API_BASE}/health`);
@@ -763,19 +806,15 @@
     checkHealth();
     setInterval(checkHealth, 8000);
 
-    // ---------- Telegram WebApp INIT ----------
-
+    // ========= Telegram WebApp авто-логін =========
     (function tryTelegramInit() {
         try {
             if (window.Telegram && window.Telegram.WebApp) {
-                tg = window.Telegram.WebApp;
+                const tg = window.Telegram.WebApp;
                 tg.expand();
                 const u = tg.initDataUnsafe && tg.initDataUnsafe.user;
-                if (u) {
-                    telegramUserId = u.id;
-                    if (u.username) {
-                        document.getElementById("username").value = u.username;
-                    }
+                if (u && u.username) {
+                    document.getElementById("username").value = u.username;
                 }
             }
         } catch (e) {
@@ -783,8 +822,7 @@
         }
     })();
 
-    // ---------- REGISTER ----------
-
+    // ========= АВТОРЕЄСТРАЦІЯ =========
     async function register() {
         let username = document.getElementById("username").value.trim();
         if (!username) {
@@ -793,15 +831,10 @@
         }
 
         try {
-            const payload = { username };
-            if (telegramUserId) {
-                payload.telegram_id = telegramUserId;
-            }
-
             const res = await fetch(`${API_BASE}/api/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ username })
             });
 
             const data = await res.json();
@@ -815,10 +848,16 @@
             myID = data.id;
             myUsername = data.username;
 
-            await ensureKeyPair(false);
-            await uploadPubKey();
-            lastKeyRotation = Date.now();
-            messagesSinceRotation = 0;
+            await ensureKeyPair();
+
+            await fetch(`${API_BASE}/api/pubkey`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ pubkey: JSON.stringify(myPublicJwk) })
+            });
 
             document.getElementById("login-card").style.display = "none";
             document.getElementById("main-blocks").style.display = "flex";
@@ -828,6 +867,14 @@
             hint.textContent = `Твій ID агента: ${myID}. Його можна передати співрозмовнику для швидкого пошуку.`;
 
             showToast("Успішно. Твій ID: " + myID);
+
+            // Стартуємо опитування повідомлень та сигналінгу
+            if (pollingInterval) clearInterval(pollingInterval);
+            pollingInterval = setInterval(loadMessages, 2000);
+
+            if (signalingPollInterval) clearInterval(signalingPollInterval);
+            signalingPollInterval = setInterval(pollSignaling, 1500);
+
         } catch (e) {
             console.error(e);
             showToast("Не вдалось підключитись до сервера", true);
@@ -838,13 +885,17 @@
         token = null;
         myID = null;
         peerID = null;
+        myPrivateKey = null;
+        myPublicJwk = null;
+
+        if (pollingInterval) clearInterval(pollingInterval);
+        if (signalingPollInterval) clearInterval(signalingPollInterval);
 
         document.getElementById("main-blocks").style.display = "none";
         document.getElementById("login-card").style.display = "block";
     }
 
-    // ---------- SEARCH USERS ----------
-
+    // ========= ПОШУК КОРИСТУВАЧІВ =========
     async function searchUser() {
         const q = document.getElementById("search").value.trim();
         const resultEl = document.getElementById("result");
@@ -863,10 +914,9 @@
                 html = `<div class="hint">Нічого не знайдено.</div>`;
             } else {
                 users.forEach(u => {
-                    const safeUsername = escapeHtml(u.username);
                     html += `
-                        <div class="user-item" onclick="openChat(${u.id}, '${safeUsername}')">
-                            <div class="user-name">${safeUsername}</div>
+                        <div class="user-item" onclick="openChat(${u.id}, '${u.username}')">
+                            <div class="user-name">${u.username}</div>
                             <div class="user-id">ID: ${u.id}</div>
                         </div>
                     `;
@@ -899,7 +949,7 @@
         peerUsername = username;
 
         const chatPeerEl = document.getElementById("chat-peer");
-        chatPeerEl.innerHTML = `3 · Чат з <span>${escapeHtml(username)}</span> (ID: ${id})`;
+        chatPeerEl.innerHTML = `3 · Чат з <span>${username}</span> (ID: ${id})`;
 
         const chatCard = document.getElementById("chat-card");
         chatCard.style.opacity = "1";
@@ -907,13 +957,9 @@
 
         lastMessagesCount = 0;
         await loadMessages();
-
-        if (pollingInterval) clearInterval(pollingInterval);
-        pollingInterval = setInterval(loadMessages, 2000);
     }
 
-    // ---------- LOAD MESSAGES (TEXT + FILE) ----------
-
+    // ========= ЗАВАНТАЖЕННЯ ПОВІДОМЛЕНЬ =========
     async function loadMessages() {
         if (!peerID || !token) return;
 
@@ -932,42 +978,47 @@
 
             for (const m of msgs) {
                 const cls = (m.from_id === myID) ? "msg me" : "msg";
-                let inner = "";
-                let plain = "[не вдалося розшифрувати]";
+                let contentHtml = "";
+                let metaText = "";
 
+                let decryptedText = "[не вдалося розшифрувати]";
                 try {
-                    plain = await decryptFromPeer(m.ciphertext, m.iv, peerPubJwk);
-                    // Спробуємо розпізнати JSON (файл / спец-повідомлення)
-                    let parsed = null;
-                    try {
-                        parsed = JSON.parse(plain);
-                    } catch (_) {}
-
-                    if (parsed && parsed.kind === "file") {
-                        const fileBuf = base64ToBuf(parsed.data);
-                        const blob = new Blob([fileBuf], { type: parsed.type || "application/octet-stream" });
-                        const url = URL.createObjectURL(blob);
-                        const sizeKb = Math.round((parsed.size || 0) / 1024);
-                        inner = `
-                            <div>📎 Зашифрований файл: <strong>${escapeHtml(parsed.name || "file")}</strong>${sizeKb ? ` (${sizeKb} KB)` : ""}</div>
-                            <a href="${url}" download="${escapeHtml(parsed.name || "file")}" style="font-size:11px;">⬇️ Завантажити</a>
-                        `;
-                    } else {
-                        inner = `<div>${escapeHtml(plain)}</div>`;
-                    }
+                    decryptedText = await decryptFromPeer(m.ciphertext, m.iv, peerPubJwk);
                 } catch (e) {
                     console.warn("Помилка дешифрування", e);
-                    inner = `<div>${escapeHtml(plain)}</div>`;
+                }
+
+                if (m.msg_type === "file") {
+                    try {
+                        const fileObj = JSON.parse(decryptedText);
+                        fileCache[m.id] = fileObj;
+                        const sizeKb = fileObj.data
+                            ? Math.round((base64ToBuf(fileObj.data).byteLength / 1024))
+                            : 0;
+                        contentHtml = `
+                            <div class="msg-file">
+                                <div class="msg-file-title">📎 Файл: ${fileObj.filename || "невідомий"}</div>
+                                <div class="msg-file-meta">${fileObj.mimeType || "application/octet-stream"} · ~${sizeKb} KB</div>
+                                <button class="msg-file-btn" onclick="downloadFile(${m.id})">⬇️ Розшифрувати і завантажити</button>
+                            </div>
+                        `;
+                    } catch (e) {
+                        console.warn("Помилка парсу файлу", e);
+                        contentHtml = `<div>${decryptedText}</div>`;
+                    }
+                } else {
+                    contentHtml = `<div>${decryptedText}</div>`;
                 }
 
                 const date = new Date(m.created_at);
                 const hh = String(date.getHours()).padStart(2, "0");
                 const mm = String(date.getMinutes()).padStart(2, "0");
+                metaText = `${hh}:${mm}`;
 
                 html += `
                     <div class="${cls}">
-                        ${inner}
-                        <div class="msg-meta">${hh}:${mm}</div>
+                        ${contentHtml}
+                        <div class="msg-meta">${metaText}</div>
                     </div>
                 `;
             }
@@ -985,8 +1036,7 @@
         }
     }
 
-    // ---------- TYPING INDICATOR ----------
-
+    // ========= ТАЙПІНГ =========
     function onTyping() {
         const typingEl = document.getElementById("typing-indicator");
         typingEl.textContent = "Ти друкуєш…";
@@ -997,17 +1047,13 @@
         }, 1200);
     }
 
-    // ---------- SEND TEXT MESSAGE ----------
-
+    // ========= НАДСИЛАННЯ ТЕКСТОВОГО ПОВІДОМЛЕННЯ =========
     async function sendMessage() {
         const input = document.getElementById("msg");
         const msg = input.value.trim();
         if (!msg || !peerID) return;
 
         try {
-            await maybeRotateKeys();
-            messagesSinceRotation += 1;
-
             const peerPubJwk = await fetchPeerPubKey(peerID);
             const { iv, ciphertext } = await encryptForPeer(msg, peerPubJwk);
 
@@ -1020,45 +1066,42 @@
                 body: JSON.stringify({
                     to: peerID,
                     iv: iv,
-                    ciphertext: ciphertext
+                    ciphertext: ciphertext,
+                    msg_type: "text"
                 })
             });
 
             input.value = "";
             await loadMessages();
+            await rotateKeyPairIfNeeded();
         } catch (e) {
             console.error("Помилка надсилання:", e);
             showToast("Не вдалося надіслати повідомлення (E2EE)", true);
         }
     }
 
-    // ---------- SEND ENCRYPTED FILE ----------
-
-    async function sendFile(evt) {
-        const file = evt.target.files[0];
-        evt.target.value = "";
-        if (!file || !peerID) {
-            if (!peerID) showToast("Спочатку обери співрозмовника", true);
+    // ========= НАДСИЛАННЯ ШИФРОВАНОГО ФАЙЛУ =========
+    async function sendEncryptedFile(event) {
+        if (!peerID) {
+            showToast("Спочатку обери співрозмовника", true);
+            event.target.value = "";
             return;
         }
+        const file = event.target.files[0];
+        if (!file) return;
 
         try {
-            await maybeRotateKeys();
-            messagesSinceRotation += 1;
-
             const arrayBuf = await file.arrayBuffer();
-            const base64Data = bufToBase64(arrayBuf);
+            const dataB64 = bufToBase64(arrayBuf);
 
-            const payload = JSON.stringify({
-                kind: "file",
-                name: file.name,
-                size: file.size,
-                type: file.type || "application/octet-stream",
-                data: base64Data
-            });
+            const payload = {
+                filename: file.name,
+                mimeType: file.type || "application/octet-stream",
+                data: dataB64
+            };
 
             const peerPubJwk = await fetchPeerPubKey(peerID);
-            const { iv, ciphertext } = await encryptForPeer(payload, peerPubJwk);
+            const { iv, ciphertext } = await encryptForPeer(JSON.stringify(payload), peerPubJwk);
 
             await fetch(`${API_BASE}/api/messages`, {
                 method: "POST",
@@ -1069,37 +1112,290 @@
                 body: JSON.stringify({
                     to: peerID,
                     iv: iv,
-                    ciphertext: ciphertext
+                    ciphertext: ciphertext,
+                    msg_type: "file"
                 })
             });
 
-            showToast("Файл відправлено у зашифрованому вигляді");
+            showToast("Файл відправлено (зашифровано)");
             await loadMessages();
+            await rotateKeyPairIfNeeded();
         } catch (e) {
-            console.error("Помилка надсилання файлу:", e);
-            showToast("Не вдалося надіслати файл (E2EE)", true);
+            console.error("Помилка відправки файлу:", e);
+            showToast("Не вдалося надіслати файл", true);
+        } finally {
+            event.target.value = "";
         }
     }
 
-    // ---------- CALL BUTTON (через Telegram) ----------
+    function downloadFile(messageId) {
+        const meta = fileCache[messageId];
+        if (!meta || !meta.data) {
+            showToast("Немає даних для файлу", true);
+            return;
+        }
+        try {
+            const buf = base64ToBuf(meta.data);
+            const blob = new Blob([buf], { type: meta.mimeType || "application/octet-stream" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = meta.filename || "file.bin";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error("Помилка завантаження файлу", e);
+            showToast("Помилка при збереженні файлу", true);
+        }
+    }
 
-    function startCall() {
-        if (!peerUsername) {
+    // ========= WEBRTC ДЗВІНКИ (через бекенд-сигналінг) =========
+    function updateCallStatus(text) {
+        callStatusEl.textContent = text || "";
+    }
+
+    async function createPeerConnection() {
+        if (!("RTCPeerConnection" in window)) {
+            showToast("Браузер не підтримує WebRTC", true);
+            return null;
+        }
+
+        const config = {
+            iceServers: [
+                { urls: "stun:stun.l.google.com:19302" }
+            ]
+        };
+
+        pc = new RTCPeerConnection(config);
+
+        pc.onicecandidate = async (event) => {
+            if (event.candidate && peerID && token) {
+                try {
+                    await fetch(`${API_BASE}/call/candidate`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token
+                        },
+                        body: JSON.stringify({
+                            to: peerID,
+                            candidate: event.candidate
+                        })
+                    });
+                } catch (e) {
+                    console.warn("Помилка надсилання ICE candidate", e);
+                }
+            }
+        };
+
+        remoteStream = new MediaStream();
+        const remoteAudio = document.getElementById("remote-audio");
+        remoteAudio.srcObject = remoteStream;
+
+        pc.ontrack = (event) => {
+            event.streams[0].getTracks().forEach(t => remoteStream.addTrack(t));
+        };
+
+        if (!localStream) {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            } catch (e) {
+                console.error("Mic error", e);
+                showToast("Немає доступу до мікрофона", true);
+                return null;
+            }
+        }
+
+        localStream.getTracks().forEach(track => {
+            pc.addTrack(track, localStream);
+        });
+
+        return pc;
+    }
+
+    async function startCall() {
+        if (!peerID) {
             showToast("Спочатку обери співрозмовника", true);
             return;
         }
-
-        const url = `https://t.me/${peerUsername}`;
+        if (isInCall || isCalling) {
+            showToast("Дзвінок вже активний", true);
+            return;
+        }
 
         try {
-            if (tg && tg.openTelegramLink) {
-                tg.openTelegramLink(url);
-            } else {
-                window.open(url, "_blank");
+            const conn = await createPeerConnection();
+            if (!conn) return;
+
+            callRole = "caller";
+            isCalling = true;
+            updateCallStatus("📞 Ініціалізація дзвінка…");
+
+            const offer = await conn.createOffer();
+            await conn.setLocalDescription(offer);
+
+            await fetch(`${API_BASE}/call/offer`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    to: peerID,
+                    sdp: offer.sdp
+                })
+            });
+
+            updateCallStatus("📡 Очікуємо відповідь від співрозмовника…");
+        } catch (e) {
+            console.error("Помилка startCall", e);
+            showToast("Не вдалося почати дзвінок", true);
+            cleanupCall();
+        }
+    }
+
+    async function handleIncomingOffer(fromId, sdp) {
+        if (isInCall || isCalling) {
+            // Можна ігнорувати або додати "busy"
+            return;
+        }
+        peerID = fromId;
+        callRole = "callee";
+
+        const chatPeerEl = document.getElementById("chat-peer");
+        chatPeerEl.innerHTML = `3 · Чат з <span>ID ${fromId}</span> (дзвінок)`;
+
+        if (!confirm(`Вхідний дзвінок від агента ${fromId}. Прийняти?`)) {
+            // опціонально: сказати бекенду "reject"
+            return;
+        }
+
+        try {
+            const conn = await createPeerConnection();
+            if (!conn) return;
+
+            updateCallStatus("🔔 Вхідний дзвінок — зʼєднання…");
+
+            await conn.setRemoteDescription(new RTCSessionDescription({
+                type: "offer",
+                sdp: sdp
+            }));
+
+            const answer = await conn.createAnswer();
+            await conn.setLocalDescription(answer);
+
+            await fetch(`${API_BASE}/call/answer`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    to: fromId,
+                    sdp: answer.sdp
+                })
+            });
+
+            isInCall = true;
+            updateCallStatus("✅ Дзвінок встановлено");
+        } catch (e) {
+            console.error("Помилка handleIncomingOffer", e);
+            showToast("Помилка під час прийому дзвінка", true);
+            cleanupCall();
+        }
+    }
+
+    async function handleIncomingAnswer(fromId, sdp) {
+        if (!pc || callRole !== "caller" || !isCalling) return;
+
+        try {
+            await pc.setRemoteDescription(new RTCSessionDescription({
+                type: "answer",
+                sdp: sdp
+            }));
+            isCalling = false;
+            isInCall = true;
+            updateCallStatus("✅ Дзвінок встановлено");
+        } catch (e) {
+            console.error("Помилка handleIncomingAnswer", e);
+            showToast("Помилка встановлення answer", true);
+        }
+    }
+
+    async function handleIncomingCandidates(candidates) {
+        if (!pc) return;
+        for (const c of candidates) {
+            try {
+                await pc.addIceCandidate(new RTCIceCandidate(c.candidate));
+            } catch (e) {
+                console.warn("Помилка додавання ICE candidate", e);
+            }
+        }
+    }
+
+    function cleanupCall() {
+        if (pc) {
+            pc.onicecandidate = null;
+            pc.ontrack = null;
+            pc.close();
+            pc = null;
+        }
+        isCalling = false;
+        isInCall = false;
+        callRole = null;
+        updateCallStatus("");
+    }
+
+    function endCall() {
+        cleanupCall();
+        showToast("Дзвінок завершено");
+    }
+
+    // Опитування сигналінгу
+    async function pollSignaling() {
+        if (!token || !myID) return;
+
+        try {
+            // Перевіряємо, чи є новий offer для нас
+            if (!isInCall && !isCalling) {
+                const resOffer = await fetch(`${API_BASE}/call/offer?peer_id=${myID}`, {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+                if (resOffer.status === 200) {
+                    const dataOffer = await resOffer.json(); // {from_id, sdp}
+                    if (dataOffer && dataOffer.from_id && dataOffer.sdp) {
+                        await handleIncomingOffer(dataOffer.from_id, dataOffer.sdp);
+                    }
+                }
+            }
+
+            // Якщо ми caller — чекаємо answer
+            if (callRole === "caller" && isCalling) {
+                const resAnswer = await fetch(`${API_BASE}/call/answer?peer_id=${myID}`, {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+                if (resAnswer.status === 200) {
+                    const dataAnswer = await resAnswer.json(); // {from_id, sdp}
+                    if (dataAnswer && dataAnswer.from_id && dataAnswer.sdp) {
+                        await handleIncomingAnswer(dataAnswer.from_id, dataAnswer.sdp);
+                    }
+                }
+            }
+
+            // ICE candidates
+            const resCand = await fetch(`${API_BASE}/call/candidate?peer_id=${myID}`, {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            if (resCand.status === 200) {
+                const dataCand = await resCand.json(); // {candidates: [{from_id, candidate}, ...]}
+                if (dataCand && Array.isArray(dataCand.candidates) && dataCand.candidates.length > 0) {
+                    await handleIncomingCandidates(dataCand.candidates);
+                }
             }
         } catch (e) {
-            console.error("Помилка відкриття Telegram-посилання", e);
-            window.open(url, "_blank");
+            console.warn("Помилка сигналінгу", e);
         }
     }
 </script>
