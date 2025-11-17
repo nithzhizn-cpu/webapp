@@ -1,840 +1,1107 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <title>SpySignal WebApp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg-main: #05060a;
-      --bg-elevated: #0b0d13;
-      --border-subtle: #181b22;
-      --accent: #3b45ff;
-      --accent-soft: #1a243a;
-      --text-main: #f5f5f5;
-      --text-muted: #858ba1;
-    }
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg-main);
-      color: var(--text-main);
-    }
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
-    }
-    #app {
-      height: 100vh;
-      width: 100%;
-      max-width: 900px;
-      background: var(--bg-main);
-      display: flex;
-      flex-direction: column;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpySignal WebApp — E2EE</title>
 
-    .layout {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    @media (min-width: 720px) {
-      .layout {
-        flex-direction: row;
-      }
-    }
+    <style>
+        :root {
+            --bg: #05070c;
+            --bg-alt: #0c1018;
+            --card: #121826;
+            --accent: #3d7bfd;
+            --accent-soft: rgba(61, 123, 253, 0.15);
+            --danger: #ff4d4d;
+            --text: #ffffff;
+            --text-muted: #8a93a5;
+            --border: #1f2433;
+        }
 
-    .sidebar {
-      background: var(--bg-elevated);
-      border-right: 1px solid var(--border-subtle);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      flex-basis: 36%;
-      max-width: 360px;
-    }
-    @media (max-width: 719px) {
-      .sidebar {
-        height: 44%;
-        max-width: 100%;
-        border-right: none;
-        border-bottom: 1px solid var(--border-subtle);
-      }
-    }
+        * {
+            box-sizing: border-box;
+        }
 
-    .profile {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    .profile-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
-    }
-    .profile-title {
-      font-size: 16px;
-      font-weight: 600;
-    }
-    .profile-sub {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-    .badge {
-      font-size: 10px;
-      background: var(--accent-soft);
-      padding: 4px 8px;
-      border-radius: 999px;
-      color: #8cdcff;
-      white-space: nowrap;
-    }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #182744 0, #05070c 55%);
+            color: var(--text);
+        }
 
-    .search {
-      padding: 8px 12px 10px;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    .search input {
-      width: 100%;
-      padding: 7px 10px;
-      border-radius: 10px;
-      border: 1px solid #262a35;
-      background: #05060a;
-      color: var(--text-main);
-      font-size: 13px;
-      outline: none;
-    }
-    .search-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--text-muted);
-      gap: 6px;
-    }
-    .pill-btn {
-      border: none;
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 11px;
-      background: var(--accent-soft);
-      color: #8cdcff;
-      cursor: pointer;
-    }
+        .app-shell {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+        }
 
-    .chat-list {
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .chat-item {
-      padding: 8px 12px;
-      border-bottom: 1px solid #11131a;
-      cursor: pointer;
-      transition: background 0.15s;
-      font-size: 13px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .chat-item:hover {
-      background: #141823;
-    }
-    .chat-item.active {
-      background: #1a2030;
-    }
-    .chat-item-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 4px;
-    }
-    .chat-name {
-      font-weight: 600;
-      font-size: 13px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .chat-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: #7c8296;
-      gap: 6px;
-    }
-    .chat-id {
-      font-size: 10px;
-      color: #636a7f;
-      font-family: monospace;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px 4px;
+        }
 
-    .chat-panel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: var(--bg-main);
-    }
-    @media (max-width: 719px) {
-      .chat-panel {
-        height: 56%;
-      }
-    }
+        .logo-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 12px rgba(0, 255, 180, 0.35);
+            background: radial-gradient(circle at 30% 20%, #26ffe0 0, #060811 55%);
+        }
 
-    .chat-header {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      min-height: 46px;
-    }
-    .chat-header-left {
-      min-width: 0;
-    }
-    .chat-header-name {
-      font-size: 15px;
-      font-weight: 600;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .chat-header-sub {
-      font-size: 11px;
-      color: var(--text-muted);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .chat-header-right {
-      display: flex;
-      gap: 4px;
-      flex-shrink: 0;
-    }
-    .icon-btn {
-      border: none;
-      background: #101321;
-      width: 30px;
-      height: 30px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      cursor: pointer;
-    }
+        .logo-circle span {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
 
-    .messages {
-      flex: 1;
-      padding: 8px 10px 4px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .msg {
-      max-width: 75%;
-      padding: 7px 9px;
-      border-radius: 14px;
-      font-size: 13px;
-      background: #141823;
-      align-self: flex-start;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-    }
-    .msg.mine {
-      align-self: flex-end;
-      background: var(--accent);
-    }
-    .msg .meta {
-      margin-top: 2px;
-      font-size: 10px;
-      opacity: 0.75;
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-    }
-    .msg.ttl {
-      border: 1px dashed #ffbe5b;
-    }
-    .system {
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-muted);
-      margin: 6px 0;
-    }
+        .header-text h1 {
+            font-size: 18px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-    .input-area {
-      padding: 6px 8px;
-      border-top: 1px solid var(--border-subtle);
-      background: rgba(5, 6, 10, 0.98);
-      backdrop-filter: blur(10px);
-      position: relative;
-    }
-    .input-row-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-    .ttl-toggle {
-      cursor: pointer;
-    }
-    .input-row-top input[type="number"] {
-      width: 56px;
-      padding: 2px 6px;
-      border-radius: 8px;
-      border: 1px solid #262a35;
-      background: #05060a;
-      color: var(--text-main);
-      font-size: 11px;
-      outline: none;
-      text-align: center;
-    }
-    .input-row-bottom {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .attach-btn, .emoji-btn {
-      border: none;
-      background: #101321;
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-    .msg-input {
-      flex: 1;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid #262a35;
-      background: #05060a;
-      color: var(--text-main);
-      font-size: 14px;
-      outline: none;
-      min-width: 0;
-    }
-    .send-btn {
-      border: none;
-      background: var(--accent);
-      color: white;
-      font-size: 14px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
+        .tagline {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
 
-    .modal {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.6);
-      z-index: 50;
-    }
-    .modal-content {
-      background: #0b0d13;
-      border-radius: 16px;
-      border: 1px solid #22283a;
-      padding: 16px;
-      width: 92%;
-      max-width: 420px;
-    }
-    .modal-content h3 {
-      margin: 0 0 6px;
-      font-size: 16px;
-    }
-    .modal-content p {
-      margin: 4px 0;
-      font-size: 13px;
-      color: #9ba1b5;
-    }
-    .modal-actions {
-      margin-top: 12px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-    .btn-secondary, .btn-primary {
-      border: none;
-      border-radius: 10px;
-      padding: 6px 10px;
-      font-size: 13px;
-      cursor: pointer;
-    }
-    .btn-secondary {
-      background: #141823;
-      color: #e1e4f0;
-    }
-    .btn-primary {
-      background: var(--accent);
-      color: white;
-    }
-    #qrCanvas {
-      width: 220px;
-      height: 220px;
-      background: #05060a;
-      border-radius: 8px;
-      margin-top: 8px;
-    }
+        .pill {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(61, 123, 253, 0.4);
+            background: rgba(8, 15, 32, 0.9);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
 
-    @media (max-width: 480px) {
-      .chat-header {
-        padding-inline: 8px;
-      }
-      .chat-header-name {
-        font-size: 14px;
-      }
-      .profile {
-        padding-inline: 10px;
-      }
-      .chat-item {
-        padding-inline: 10px;
-      }
-    }
-  </style>
+        .status-bar {
+            margin: 6px 4px 8px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            background: rgba(3, 10, 25, 0.9);
+            border: 1px solid var(--border);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+            box-shadow: 0 0 10px rgba(77, 255, 153, 0.8);
+            background: radial-gradient(circle, #81ffb7 0, #08c96a 60%);
+        }
+
+        .status-dot.offline {
+            background: radial-gradient(circle, #ff9b9b 0, #ff4040 60%);
+            box-shadow: 0 0 8px rgba(255, 64, 64, 0.8);
+        }
+
+        .status-label {
+            font-weight: 500;
+            margin-right: 4px;
+        }
+
+        .status-url {
+            color: var(--text-muted);
+            opacity: .8;
+        }
+
+        .card {
+            background: rgba(11, 15, 27, 0.96);
+            border-radius: 16px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+            margin-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .field-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin: 6px 2px 2px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 9px 11px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #060a13;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(61, 123, 253, 0.6);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            background: linear-gradient(135deg, #3d7bfd, #47d3ff);
+            color: #fff;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            filter: brightness(.95);
+        }
+
+        .btn-secondary {
+            background: rgba(7, 12, 26, 0.9);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-small {
+            width: auto;
+            padding: 6px 10px;
+            font-size: 11px;
+            border-radius: 999px;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .two-blocks {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search-results {
+            max-height: 160px;
+            overflow-y: auto;
+            margin-top: 6px;
+        }
+
+        .user-item {
+            background: #0c1018;
+            border-radius: 10px;
+            padding: 8px 9px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(54, 63, 90, 0.8);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-item:hover {
+            border-color: var(--accent);
+            background: rgba(14, 20, 37, 0.95);
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .user-id {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .chat-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+
+        .chat-peer {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .chat-peer span {
+            color: var(--accent);
+        }
+
+        .typing-indicator {
+            font-size: 11px;
+            color: var(--text-muted);
+            min-height: 14px;
+        }
+
+        .chat-window {
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: radial-gradient(circle at top left, rgba(61, 123, 253, .08) 0, #05070c 40%);
+            height: 270px;
+            padding: 8px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .msg {
+            padding: 7px 10px;
+            border-radius: 11px;
+            font-size: 13px;
+            max-width: 78%;
+            line-height: 1.4;
+            background: #171f32;
+            animation: fadeUp .18s ease-out forwards;
+            opacity: 0;
+            transform: translateY(4px);
+        }
+
+        .msg.me {
+            margin-left: auto;
+            background: linear-gradient(135deg, #3d7bfd, #40c3ff);
+        }
+
+        .msg-meta {
+            font-size: 9px;
+            color: #b8c2d8;
+            margin-top: 2px;
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-input-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+        }
+
+        .chat-send-btn {
+            width: 44px;
+            height: 38px;
+            border-radius: 12px;
+            background: var(--accent);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .chat-send-btn span {
+            font-size: 18px;
+        }
+
+        .chat-tools {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+            justify-content: flex-end;
+        }
+
+        .tool-btn {
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #060a13;
+            color: var(--text-muted);
+            font-size: 11px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .tool-btn span {
+            font-size: 13px;
+        }
+
+        .footer-hint {
+            margin-top: 6px;
+            text-align: center;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .footer-hint strong {
+            color: #61ffa8;
+        }
+
+        .badge-e2ee {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(140, 255, 195, 0.8);
+            background: rgba(9, 24, 20, 0.9);
+            color: #9dffd0;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #141a28;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            padding: 7px 14px;
+            font-size: 12px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            z-index: 999;
+        }
+
+        .toast.show {
+            display: inline-flex;
+            animation: fadeToast .25s ease-out;
+        }
+
+        .toast-error {
+            border-color: rgba(255, 85, 85, 0.6);
+            color: #ffb3b3;
+        }
+
+        @keyframes fadeToast {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 4px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+    </style>
 </head>
+
 <body>
-<div id="app">
-  <div class="layout">
-    <aside class="sidebar">
-      <div class="profile">
-        <div class="profile-top">
-          <div>
-            <div class="profile-title">SpySignal</div>
-            <div class="profile-sub">WebApp у Telegram • шифрований чат</div>
-          </div>
-          <span class="badge">E2EE</span>
+<div class="app-shell">
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo-circle">
+            <span>SS</span>
         </div>
-        <div class="profile-sub" style="margin-top:4px;">
-          Ваш ID: <span id="myId" style="font-family:monospace;">...</span>
+        <div class="header-text">
+            <h1>SpySignal <span class="pill">stealth e2ee</span></h1>
+            <div class="tagline">Шифрований месенджер у стилі шпигунів</div>
         </div>
-      </div>
-      <div class="search">
-        <input id="searchInput" placeholder="Пошук за ID або нікнеймом…" />
-        <div class="search-row">
-          <span>PIN / приховані чати</span>
-          <button class="pill-btn" onclick="openPinModal()">Налаштувати</button>
-        </div>
-      </div>
-      <div id="chatList" class="chat-list"></div>
-    </aside>
+    </header>
 
-    <section class="chat-panel">
-      <header class="chat-header">
-        <div class="chat-header-left">
-          <div id="chatName" class="chat-header-name">Немає активного чату</div>
-          <div id="chatSub" class="chat-header-sub">Оберіть контакт зліва, щоб почати</div>
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+        <div id="status-dot" class="status-dot"></div>
+        <div>
+            <span class="status-label" id="status-label">Перевірка сервера…</span>
+            <span class="status-url" id="status-url"></span>
         </div>
-        <div class="chat-header-right">
-          <button class="icon-btn" onclick="startVoiceRecord()">🎤</button>
-          <button class="icon-btn" onclick="startVideoRecord()">🎥</button>
-          <button class="icon-btn" onclick="startCall()">📞</button>
-          <button class="icon-btn" onclick="openQrModal()">🔑</button>
-        </div>
-      </header>
+    </div>
 
-      <div id="messages" class="messages"></div>
+    <!-- LOGIN -->
+    <section class="card" id="login-card">
+        <div class="card-title">
+            <span>1 · Ідентифікація агента</span>
+            <span class="badge-e2ee">E2EE ключі генеруються локально</span>
+        </div>
+        <div class="card-subtitle">
+            Введи свій позивний (нікнейм). Він потрібен тільки для пошуку, ключі шифрування зберігаються у твоєму пристрої.
+        </div>
 
-      <div class="input-area" style="padding-bottom: env(safe-area-inset-bottom, 6px);">
-        <div class="input-row-top">
-          <span class="ttl-toggle" onclick="toggleTTL()">TTL: <span id="ttlLabel">вимкнено</span></span>
-          <div>
-            <span style="font-size:11px;margin-right:4px;">сек</span>
-            <input id="ttlSeconds" type="number" min="5" value="30" />
-          </div>
-        </div>
-        <div class="input-row-bottom">
-          <button class="attach-btn" onclick="attachFile()">📎</button>
-          <input id="msgInput" class="msg-input" placeholder="Напишіть повідомлення…" />
-          <button class="send-btn" onclick="sendMsg()">➤</button>
-        </div>
-      </div>
+        <div class="field-label">Позивний (username)</div>
+        <input id="username" class="input" placeholder="Наприклад, ShadowFox" autocomplete="off">
+
+        <button class="btn" onclick="register()">
+            🔓 Увійти в SpySignal
+        </button>
+
+        <div class="hint" id="my-id-hint" style="display:none;"></div>
     </section>
-  </div>
+
+    <!-- SEARCH + CHAT -->
+    <section class="two-blocks" id="main-blocks" style="display:none;">
+
+        <!-- SEARCH CARD -->
+        <div class="card">
+            <div class="card-title">
+                <span>2 · Пошук контакту</span>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-small btn-secondary" onclick="rotateKeys(true)">Оновити ключ</button>
+                    <button class="btn-small btn-secondary" onclick="backToLogin()">Змінити агента</button>
+                </div>
+            </div>
+            <div class="card-subtitle">
+                Введи ID або нікнейм іншого агента, з яким хочеш встановити зашифрований канал.
+            </div>
+
+            <div class="field-label">Пошук (ID або username)</div>
+            <input id="search" class="input" placeholder="Приклад: 2 або NightOwl" oninput="searchUser()">
+
+            <div class="search-results" id="result"></div>
+        </div>
+
+        <!-- CHAT CARD -->
+        <div class="card" id="chat-card" style="opacity:0.5; pointer-events:none;">
+            <div class="chat-header-row">
+                <div class="chat-peer" id="chat-peer">
+                    3 · Чат <span>(обери співрозмовника)</span>
+                </div>
+                <div class="typing-indicator" id="typing-indicator"></div>
+            </div>
+
+            <div class="chat-window" id="chat"></div>
+
+            <div class="chat-input-row">
+                <div class="chat-input">
+                    <input id="msg" class="input" placeholder="Зашифроване повідомлення…" oninput="onTyping()">
+                </div>
+                <button class="chat-send-btn" onclick="sendMessage()">
+                    <span>➤</span>
+                </button>
+            </div>
+
+            <!-- TOOLS: FILE + CALL -->
+            <div class="chat-tools">
+                <input id="file-input" type="file" style="display:none" onchange="sendFile(event)">
+                <button class="tool-btn" onclick="document.getElementById('file-input').click()">
+                    <span>📎</span> Файл
+                </button>
+                <button class="tool-btn" onclick="startCall()">
+                    <span>📞</span> Дзвінок
+                </button>
+            </div>
+
+            <div class="footer-hint">
+                Всі текст і файли шифруються <strong>на пристроях</strong>, сервер бачить лише випадковий набір байтів.
+            </div>
+        </div>
+
+    </section>
+
+    <div class="toast" id="toast"></div>
 </div>
 
-<div id="pinModal" class="modal">
-  <div class="modal-content">
-    <h3>PIN та приховані чати</h3>
-    <p>PIN використовується для розблокування прихованих чатів. Можна задати також фейковий PIN.</p>
-    <label style="font-size:13px;">Основний PIN:</label>
-    <input id="mainPin" type="password"
-           style="width:100%;padding:6px 8px;border-radius:8px;border:1px solid #262a35;background:#05060a;color:#fff;margin-bottom:6px;">
-    <label style="font-size:13px;">Фейковий PIN:</label>
-    <input id="fakePin" type="password"
-           style="width:100%;padding:6px 8px;border-radius:8px;border:1px solid #262a35;background:#05060a;color:#fff;">
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closePinModal()">Скасувати</button>
-      <button class="btn-primary" onclick="savePins()">Зберегти</button>
-    </div>
-  </div>
-</div>
-
-<div id="qrModal" class="modal">
-  <div class="modal-content">
-    <h3>Верифікація ключа чату</h3>
-    <p>Порівняйте QR-код з іншим пристроєм. Якщо збігається — канал підтверджено.</p>
-    <canvas id="qrCanvas"></canvas>
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeQrModal()">Закрити</button>
-    </div>
-  </div>
-</div>
-
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script>
-  const API_BASE = "https://your-backend-domain"; // ← заміни на свій бекенд (https://.../)
+    // 🔗 ПІДСТАВ СВІЙ RAILWAY ДОМЕН
+    const API_BASE = "https://web-production-16ba1.up.railway.app";
 
-  let authToken = null;
-  let currentUser = null;
-  let activeChat = null;
-  let ttlEnabled = false;
-  let pins = { main: null, fake: null };
+    let token = null;
+    let myID = null;
+    let myUsername = null;
+    let peerID = null;
+    let peerUsername = null;
 
-  const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-  if (tg) {
-    tg.expand();
-    tg.setBackgroundColor("#05060a");
-    tg.setHeaderColor("#05060a");
-  }
+    // Telegram WebApp user
+    let telegramUserId = null;
+    let tg = null;
 
-  async function sha256(str) {
-    const enc = new TextEncoder();
-    const data = enc.encode(str);
-    const hash = await crypto.subtle.digest("SHA-256", data);
-    return new Uint8Array(hash);
-  }
-  async function deriveChatKey(myId, peerId) {
-    const ordered = [myId, peerId].sort().join(":");
-    const keyBytes = await sha256(ordered);
-    return crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
-  }
-  function bufToBase64(buf) {
-    return btoa(String.fromCharCode(...new Uint8Array(buf)));
-  }
-  function base64ToBuf(b64) {
-    const bin = atob(b64);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    return bytes.buffer;
-  }
-  async function encryptMessage(plaintext, myId, peerId) {
-    const key = await deriveChatKey(myId, peerId);
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ciphertext = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      key,
-      new TextEncoder().encode(plaintext)
-    );
-    return { iv: bufToBase64(iv), ciphertext: bufToBase64(ciphertext) };
-  }
-  async function decryptMessage(iv, ciphertext, myId, peerId) {
-    try {
-      const key = await deriveChatKey(myId, peerId);
-      const plainBuf = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: new Uint8Array(base64ToBuf(iv)) },
-        key,
-        base64ToBuf(ciphertext)
-      );
-      return new TextDecoder().decode(plainBuf);
-    } catch (e) {
-      console.error("Decrypt error", e);
-      return "❗ Не вдалося розшифрувати";
+    let lastMessagesCount = 0;
+    let pollingInterval = null;
+    let typingTimeout = null;
+
+    // E2EE
+    let myPrivateKey = null;
+    let myPublicJwk = null;
+    const LOCAL_KEY_STORAGE = "spysignal_e2ee_keypair_v1";
+
+    // Forward secrecy (просте)
+    let lastKeyRotation = 0;
+    let messagesSinceRotation = 0;
+    const ROTATION_MESSAGE_LIMIT = 50;           // після скількох повідомлень оновлювати ключ
+    const ROTATION_TIME_MS = 24 * 60 * 60 * 1000; // раз на 24 години
+
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    const statusDot = document.getElementById("status-dot");
+    const statusLabel = document.getElementById("status-label");
+    const statusUrl = document.getElementById("status-url");
+    const toastEl = document.getElementById("toast");
+
+    statusUrl.textContent = API_BASE.replace("https://", "");
+
+    function showToast(msg, isError = false) {
+        toastEl.textContent = msg;
+        toastEl.className = "toast show" + (isError ? " toast-error" : "");
+        setTimeout(() => {
+            toastEl.classList.remove("show");
+        }, 2500);
     }
-  }
 
-  async function apiGET(url) {
-    const headers = {};
-    if (authToken) headers["Authorization"] = "Bearer " + authToken;
-    const res = await fetch(API_BASE + url, { headers });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return await res.json();
-  }
-  async function apiPOST(url, body) {
-    const headers = { "Content-Type": "application/json" };
-    if (authToken) headers["Authorization"] = "Bearer " + authToken;
-    const res = await fetch(API_BASE + url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return await res.json();
-  }
-
-  async function registerUser(username, telegramId) {
-    const resp = await fetch(API_BASE + "/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, telegram_id: telegramId }),
-    });
-    if (!resp.ok) throw new Error("Register error");
-    return await resp.json();
-  }
-
-  async function initAuth() {
-    let tgUser = null;
-    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      tgUser = tg.initDataUnsafe.user;
+    function bufToBase64(buf) {
+        let bin = "";
+        const bytes = new Uint8Array(buf);
+        for (let b of bytes) bin += String.fromCharCode(b);
+        return btoa(bin);
     }
-    const savedStr = localStorage.getItem("spysignal_auth");
-    if (savedStr) {
-      const saved = JSON.parse(savedStr);
-      if (!tgUser || (saved.telegram_id && saved.telegram_id === tgUser.id)) {
-        authToken = saved.token;
-        currentUser = { id: saved.id, username: saved.username };
-        document.getElementById("myId").textContent = currentUser.id;
-        return;
-      }
+
+    function base64ToBuf(b64) {
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) {
+            bytes[i] = bin.charCodeAt(i);
+        }
+        return bytes.buffer;
     }
-    let username = "Anon" + Math.floor(Math.random() * 9999);
-    if (tgUser) {
-      if (tgUser.username) username = tgUser.username;
-      else username = (tgUser.first_name || "User") + "_" + tgUser.id;
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, c => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[c]));
     }
-    const data = await registerUser(username, tgUser ? tgUser.id : null);
-    authToken = data.token;
-    currentUser = { id: data.id, username: data.username };
-    document.getElementById("myId").textContent = currentUser.id;
-    localStorage.setItem("spysignal_auth", JSON.stringify({
-      id: data.id,
-      username: data.username,
-      token: data.token,
-      telegram_id: tgUser ? tgUser.id : null,
-    }));
-  }
 
-  function addSystem(text) {
-    const msgs = document.getElementById("messages");
-    const div = document.createElement("div");
-    div.className = "system";
-    div.textContent = text;
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-  function addMsg(text, mine, ttlSec) {
-    const msgs = document.getElementById("messages");
-    const div = document.createElement("div");
-    div.className = "msg" + (mine ? " mine" : "") + (ttlSec ? " ttl" : "");
-    const now = new Date();
-    const metaLeft = ttlSec ? ("TTL " + ttlSec + "s") : "🔒 AES-GCM";
-    div.innerHTML =
-      '<div class="body">' + text + "</div>" +
-      '<div class="meta"><span>' + metaLeft + "</span><span>" + now.toLocaleTimeString() + "</span></div>";
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-    if (ttlSec) {
-      setTimeout(() => div.remove(), ttlSec * 1000);
+    // ---------- E2EE KEYPAIR + ROTATION ----------
+
+    async function ensureKeyPair(forceNew = false) {
+        if (!forceNew && myPrivateKey && myPublicJwk) return;
+
+        if (!forceNew) {
+            const raw = localStorage.getItem(LOCAL_KEY_STORAGE);
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    myPublicJwk = parsed.publicJwk;
+                    const privJwk = parsed.privateJwk;
+                    myPrivateKey = await crypto.subtle.importKey(
+                        "jwk",
+                        privJwk,
+                        { name: "ECDH", namedCurve: "P-256" },
+                        false,
+                        ["deriveKey", "deriveBits"]
+                    );
+                    return;
+                } catch (e) {
+                    console.warn("Помилка читання локального ключа, генеруємо новий", e);
+                }
+            }
+        }
+
+        const keyPair = await crypto.subtle.generateKey(
+            { name: "ECDH", namedCurve: "P-256" },
+            true,
+            ["deriveKey", "deriveBits"]
+        );
+
+        const pubJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
+        const privJwk = await crypto.subtle.exportKey("jwk", keyPair.privateKey);
+
+        myPrivateKey = keyPair.privateKey;
+        myPublicJwk = pubJwk;
+
+        localStorage.setItem(
+            LOCAL_KEY_STORAGE,
+            JSON.stringify({ publicJwk: pubJwk, privateJwk: privJwk })
+        );
     }
-  }
 
-  async function searchUsers() {
-    const q = document.getElementById("searchInput").value.trim();
-    if (!q) return;
-    try {
-      const res = await apiGET("/api/users/search?query=" + encodeURIComponent(q));
-      const list = document.getElementById("chatList");
-      list.innerHTML = "";
-      res.results.forEach((u) => {
-        const item = document.createElement("div");
-        item.className = "chat-item" + (activeChat && activeChat.id === u.id ? " active" : "");
-        item.innerHTML =
-          '<div class="chat-item-top">' +
-            '<div class="chat-name">' + u.username + "</div>" +
-          "</div>" +
-          '<div class="chat-meta">' +
-            '<span class="chat-id">' + u.id + "</span>" +
-          "</div>";
-        item.onclick = () => openChat(u);
-        list.appendChild(item);
-      });
-    } catch (e) {
-      console.error(e);
-      addSystem("Помилка пошуку користувачів");
+    async function uploadPubKey() {
+        if (!token || !myPublicJwk) return;
+        try {
+            await fetch(`${API_BASE}/api/pubkey`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ pubkey: JSON.stringify(myPublicJwk) })
+            });
+        } catch (e) {
+            console.warn("Помилка завантаження pubkey", e);
+        }
     }
-  }
 
-  async function openChat(user) {
-    activeChat = user;
-    document.getElementById("chatName").textContent = user.username;
-    document.getElementById("chatSub").textContent = "ID: " + user.id + " • AES-GCM";
-    const msgsEl = document.getElementById("messages");
-    msgsEl.innerHTML = "";
-    addSystem("Завантаження історії…");
-    try {
-      const res = await apiGET("/api/messages?peer_id=" + encodeURIComponent(user.id));
-      msgsEl.innerHTML = "";
-      for (const m of res.messages) {
-        const plain = await decryptMessage(m.iv, m.ciphertext, currentUser.id, user.id);
-        addMsg(plain, m.from_id === currentUser.id, m.ttl_sec);
-      }
-    } catch (e) {
-      console.error(e);
-      addSystem("Не вдалося завантажити історію.");
+    async function rotateKeys(manual = false) {
+        await ensureKeyPair(true);
+        await uploadPubKey();
+        lastKeyRotation = Date.now();
+        messagesSinceRotation = 0;
+        showToast(
+            manual
+                ? "Ключі E2EE оновлено вручну. Старі повідомлення можуть бути недоступні."
+                : "Ключі E2EE автоматично оновлено."
+        );
     }
-  }
 
-  function toggleTTL() {
-    ttlEnabled = !ttlEnabled;
-    document.getElementById("ttlLabel").textContent = ttlEnabled ? "увімкнено" : "вимкнено";
-  }
-
-  async function sendMsg() {
-    if (!activeChat) {
-      alert("Оберіть чат зліва");
-      return;
+    async function maybeRotateKeys() {
+        const now = Date.now();
+        if (!lastKeyRotation) lastKeyRotation = now;
+        if (
+            now - lastKeyRotation > ROTATION_TIME_MS ||
+            messagesSinceRotation >= ROTATION_MESSAGE_LIMIT
+        ) {
+            await rotateKeys(false);
+        }
     }
-    const input = document.getElementById("msgInput");
-    const txt = input.value.trim();
-    if (!txt) return;
-    const ttlSec = ttlEnabled ? parseInt(document.getElementById("ttlSeconds").value || "30", 10) : null;
-    try {
-      const enc = await encryptMessage(txt, currentUser.id, activeChat.id);
-      const body = {
-        to: activeChat.id,
-        iv: enc.iv,
-        ciphertext: enc.ciphertext,
-        msg_type: "text",
-        ttl_sec: ttlSec,
-      };
-      await apiPOST("/api/messages", body);
-      addMsg(txt, true, ttlSec);
-      input.value = "";
-    } catch (e) {
-      console.error(e);
-      alert("Не вдалося надіслати");
+
+    async function getAesKeyForPeer(peerPubJwk) {
+        if (!myPrivateKey) {
+            await ensureKeyPair(false);
+        }
+        const peerPubKey = await crypto.subtle.importKey(
+            "jwk",
+            peerPubJwk,
+            { name: "ECDH", namedCurve: "P-256" },
+            false,
+            []
+        );
+
+        const aesKey = await crypto.subtle.deriveKey(
+            { name: "ECDH", public: peerPubKey },
+            myPrivateKey,
+            { name: "AES-GCM", length: 256 },
+            false,
+            ["encrypt", "decrypt"]
+        );
+        return aesKey;
     }
-  }
 
-  function attachFile() {
-    alert("У цій демо-версії файли не зберігаються. Можна додати через AES-GCM та /api/messages з msg_type='file'.");
-  }
+    async function encryptForPeer(plaintext, peerPubJwk) {
+        const key = await getAesKeyForPeer(peerPubJwk);
+        const iv = crypto.getRandomValues(new Uint8Array(12));
 
-  let recorder;
-  let chunks = [];
-  async function startVoiceRecord() {
-    if (!activeChat) {
-      alert("Оберіть чат");
-      return;
+        const ciphertextBuf = await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv },
+            key,
+            encoder.encode(plaintext)
+        );
+
+        return {
+            iv: bufToBase64(iv.buffer),
+            ciphertext: bufToBase64(ciphertextBuf),
+        };
     }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      recorder = new MediaRecorder(stream);
-      chunks = [];
-      recorder.ondataavailable = (e) => chunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        const url = URL.createObjectURL(blob);
-        addMsg('<audio controls src="' + url + '"></audio>', true, null);
-      };
-      recorder.start();
-      alert("🎤 Запис. Натисніть ОК, щоб зупинити.");
-      recorder.stop();
-    } catch (e) {
-      console.error(e);
-      alert("Мікрофон недоступний");
+
+    async function decryptFromPeer(ciphertextB64, ivB64, peerPubJwk) {
+        const key = await getAesKeyForPeer(peerPubJwk);
+        const ivBuf = base64ToBuf(ivB64);
+        const ctBuf = base64ToBuf(ciphertextB64);
+
+        const plainBuf = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: new Uint8Array(ivBuf) },
+            key,
+            ctBuf
+        );
+        return decoder.decode(plainBuf);
     }
-  }
 
-  async function startVideoRecord() {
-    if (!activeChat) {
-      alert("Оберіть чат");
-      return;
+    // ---------- HEALTH CHECK ----------
+
+    async function checkHealth() {
+        try {
+            const res = await fetch(`${API_BASE}/health`);
+            if (!res.ok) throw new Error("bad status");
+            const data = await res.json();
+            if (data.status === "ok") {
+                statusDot.classList.remove("offline");
+                statusLabel.textContent = "Підключено до сервера";
+            } else {
+                statusDot.classList.add("offline");
+                statusLabel.textContent = "Сервер відповідає некоректно";
+            }
+        } catch {
+            statusDot.classList.add("offline");
+            statusLabel.textContent = "Немає зв'язку з бекендом";
+        }
     }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      recorder = new MediaRecorder(stream);
-      chunks = [];
-      recorder.ondataavailable = (e) => chunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
-        addMsg('<video controls width="200" src="' + url + '"></video>', true, null);
-      };
-      recorder.start();
-      alert("🎥 Запис відео. Натисніть ОК, щоб зупинити.");
-      recorder.stop();
-    } catch (e) {
-      console.error(e);
-      alert("Камера недоступна");
+
+    checkHealth();
+    setInterval(checkHealth, 8000);
+
+    // ---------- Telegram WebApp INIT ----------
+
+    (function tryTelegramInit() {
+        try {
+            if (window.Telegram && window.Telegram.WebApp) {
+                tg = window.Telegram.WebApp;
+                tg.expand();
+                const u = tg.initDataUnsafe && tg.initDataUnsafe.user;
+                if (u) {
+                    telegramUserId = u.id;
+                    if (u.username) {
+                        document.getElementById("username").value = u.username;
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("Telegram WebApp недоступний або не використовується", e);
+        }
+    })();
+
+    // ---------- REGISTER ----------
+
+    async function register() {
+        let username = document.getElementById("username").value.trim();
+        if (!username) {
+            showToast("Введи позивний (username)", true);
+            return;
+        }
+
+        try {
+            const payload = { username };
+            if (telegramUserId) {
+                payload.telegram_id = telegramUserId;
+            }
+
+            const res = await fetch(`${API_BASE}/api/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.token || !data.id) {
+                console.error("Помилка реєстрації:", data);
+                showToast("Помилка реєстрації", true);
+                return;
+            }
+
+            token = data.token;
+            myID = data.id;
+            myUsername = data.username;
+
+            await ensureKeyPair(false);
+            await uploadPubKey();
+            lastKeyRotation = Date.now();
+            messagesSinceRotation = 0;
+
+            document.getElementById("login-card").style.display = "none";
+            document.getElementById("main-blocks").style.display = "flex";
+
+            const hint = document.getElementById("my-id-hint");
+            hint.style.display = "block";
+            hint.textContent = `Твій ID агента: ${myID}. Його можна передати співрозмовнику для швидкого пошуку.`;
+
+            showToast("Успішно. Твій ID: " + myID);
+        } catch (e) {
+            console.error(e);
+            showToast("Не вдалось підключитись до сервера", true);
+        }
     }
-  }
 
-  async function startCall() {
-    alert("WebRTC дзвінок: потрібна реалізація SDP через /api/webrtc/offer/answer (демо).");
-  }
+    function backToLogin() {
+        token = null;
+        myID = null;
+        peerID = null;
 
-  function openPinModal() {
-    document.getElementById("pinModal").style.display = "flex";
-  }
-  function closePinModal() {
-    document.getElementById("pinModal").style.display = "none";
-  }
-  function savePins() {
-    pins.main = document.getElementById("mainPin").value || null;
-    pins.fake = document.getElementById("fakePin").value || null;
-    alert("PIN збережено локально (демо).");
-    closePinModal();
-  }
+        document.getElementById("main-blocks").style.display = "none";
+        document.getElementById("login-card").style.display = "block";
+    }
 
-  function openQrModal() {
-    document.getElementById("qrModal").style.display = "flex";
-    const canvas = document.getElementById("qrCanvas");
-    const text = activeChat
-      ? "chat-key:" + currentUser.id + ":" + activeChat.id
-      : "chat-key:" + currentUser.id + ":none";
-    QRCode.toCanvas(canvas, text, { width: 220 }, (err) => {
-      if (err) console.error(err);
-    });
-  }
-  function closeQrModal() {
-    document.getElementById("qrModal").style.display = "none";
-  }
+    // ---------- SEARCH USERS ----------
 
-  document.getElementById("searchInput").addEventListener("keyup", (e) => {
-    if (e.key === "Enter") searchUsers();
-  });
-  document.getElementById("msgInput").addEventListener("keyup", (e) => {
-    if (e.key === "Enter") sendMsg();
-  });
+    async function searchUser() {
+        const q = document.getElementById("search").value.trim();
+        const resultEl = document.getElementById("result");
+        if (!q) {
+            resultEl.innerHTML = "";
+            return;
+        }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    initAuth()
-      .then(() => {
-        addSystem("SpySignal WebApp готовий. Знайдіть користувача через пошук.");
-      })
-      .catch((e) => {
-        console.error(e);
-        addSystem("Помилка ініціалізації.");
-      });
-  });
+        try {
+            const res = await fetch(`${API_BASE}/api/users/search?query=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            const users = data.results || [];
+            let html = "";
+
+            if (users.length === 0) {
+                html = `<div class="hint">Нічого не знайдено.</div>`;
+            } else {
+                users.forEach(u => {
+                    const safeUsername = escapeHtml(u.username);
+                    html += `
+                        <div class="user-item" onclick="openChat(${u.id}, '${safeUsername}')">
+                            <div class="user-name">${safeUsername}</div>
+                            <div class="user-id">ID: ${u.id}</div>
+                        </div>
+                    `;
+                });
+            }
+            resultEl.innerHTML = html;
+        } catch (e) {
+            console.error("Помилка пошуку:", e);
+            showToast("Помилка при пошуку користувачів", true);
+        }
+    }
+
+    const peerPubKeyCache = {};
+
+    async function fetchPeerPubKey(peerId) {
+        if (peerPubKeyCache[peerId]) return peerPubKeyCache[peerId];
+
+        const res = await fetch(`${API_BASE}/api/pubkey/${peerId}`);
+        if (!res.ok) {
+            throw new Error("У користувача немає E2EE ключа");
+        }
+        const data = await res.json();
+        const jwk = JSON.parse(data.pubkey);
+        peerPubKeyCache[peerId] = jwk;
+        return jwk;
+    }
+
+    async function openChat(id, username) {
+        peerID = id;
+        peerUsername = username;
+
+        const chatPeerEl = document.getElementById("chat-peer");
+        chatPeerEl.innerHTML = `3 · Чат з <span>${escapeHtml(username)}</span> (ID: ${id})`;
+
+        const chatCard = document.getElementById("chat-card");
+        chatCard.style.opacity = "1";
+        chatCard.style.pointerEvents = "auto";
+
+        lastMessagesCount = 0;
+        await loadMessages();
+
+        if (pollingInterval) clearInterval(pollingInterval);
+        pollingInterval = setInterval(loadMessages, 2000);
+    }
+
+    // ---------- LOAD MESSAGES (TEXT + FILE) ----------
+
+    async function loadMessages() {
+        if (!peerID || !token) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/api/messages?peer_id=${peerID}`, {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            const data = await res.json();
+            const msgs = data.messages || [];
+            const chatEl = document.getElementById("chat");
+
+            const peerPubJwk = await fetchPeerPubKey(peerID);
+
+            const isNew = msgs.length > lastMessagesCount;
+            let html = "";
+
+            for (const m of msgs) {
+                const cls = (m.from_id === myID) ? "msg me" : "msg";
+                let inner = "";
+                let plain = "[не вдалося розшифрувати]";
+
+                try {
+                    plain = await decryptFromPeer(m.ciphertext, m.iv, peerPubJwk);
+                    // Спробуємо розпізнати JSON (файл / спец-повідомлення)
+                    let parsed = null;
+                    try {
+                        parsed = JSON.parse(plain);
+                    } catch (_) {}
+
+                    if (parsed && parsed.kind === "file") {
+                        const fileBuf = base64ToBuf(parsed.data);
+                        const blob = new Blob([fileBuf], { type: parsed.type || "application/octet-stream" });
+                        const url = URL.createObjectURL(blob);
+                        const sizeKb = Math.round((parsed.size || 0) / 1024);
+                        inner = `
+                            <div>📎 Зашифрований файл: <strong>${escapeHtml(parsed.name || "file")}</strong>${sizeKb ? ` (${sizeKb} KB)` : ""}</div>
+                            <a href="${url}" download="${escapeHtml(parsed.name || "file")}" style="font-size:11px;">⬇️ Завантажити</a>
+                        `;
+                    } else {
+                        inner = `<div>${escapeHtml(plain)}</div>`;
+                    }
+                } catch (e) {
+                    console.warn("Помилка дешифрування", e);
+                    inner = `<div>${escapeHtml(plain)}</div>`;
+                }
+
+                const date = new Date(m.created_at);
+                const hh = String(date.getHours()).padStart(2, "0");
+                const mm = String(date.getMinutes()).padStart(2, "0");
+
+                html += `
+                    <div class="${cls}">
+                        ${inner}
+                        <div class="msg-meta">${hh}:${mm}</div>
+                    </div>
+                `;
+            }
+
+            chatEl.innerHTML = html;
+            chatEl.scrollTop = chatEl.scrollHeight;
+
+            if (isNew && navigator.vibrate) {
+                navigator.vibrate(40);
+            }
+
+            lastMessagesCount = msgs.length;
+        } catch (e) {
+            console.error("Помилка завантаження повідомлень:", e);
+        }
+    }
+
+    // ---------- TYPING INDICATOR ----------
+
+    function onTyping() {
+        const typingEl = document.getElementById("typing-indicator");
+        typingEl.textContent = "Ти друкуєш…";
+
+        if (typingTimeout) clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            typingEl.textContent = "";
+        }, 1200);
+    }
+
+    // ---------- SEND TEXT MESSAGE ----------
+
+    async function sendMessage() {
+        const input = document.getElementById("msg");
+        const msg = input.value.trim();
+        if (!msg || !peerID) return;
+
+        try {
+            await maybeRotateKeys();
+            messagesSinceRotation += 1;
+
+            const peerPubJwk = await fetchPeerPubKey(peerID);
+            const { iv, ciphertext } = await encryptForPeer(msg, peerPubJwk);
+
+            await fetch(`${API_BASE}/api/messages`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    to: peerID,
+                    iv: iv,
+                    ciphertext: ciphertext
+                })
+            });
+
+            input.value = "";
+            await loadMessages();
+        } catch (e) {
+            console.error("Помилка надсилання:", e);
+            showToast("Не вдалося надіслати повідомлення (E2EE)", true);
+        }
+    }
+
+    // ---------- SEND ENCRYPTED FILE ----------
+
+    async function sendFile(evt) {
+        const file = evt.target.files[0];
+        evt.target.value = "";
+        if (!file || !peerID) {
+            if (!peerID) showToast("Спочатку обери співрозмовника", true);
+            return;
+        }
+
+        try {
+            await maybeRotateKeys();
+            messagesSinceRotation += 1;
+
+            const arrayBuf = await file.arrayBuffer();
+            const base64Data = bufToBase64(arrayBuf);
+
+            const payload = JSON.stringify({
+                kind: "file",
+                name: file.name,
+                size: file.size,
+                type: file.type || "application/octet-stream",
+                data: base64Data
+            });
+
+            const peerPubJwk = await fetchPeerPubKey(peerID);
+            const { iv, ciphertext } = await encryptForPeer(payload, peerPubJwk);
+
+            await fetch(`${API_BASE}/api/messages`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    to: peerID,
+                    iv: iv,
+                    ciphertext: ciphertext
+                })
+            });
+
+            showToast("Файл відправлено у зашифрованому вигляді");
+            await loadMessages();
+        } catch (e) {
+            console.error("Помилка надсилання файлу:", e);
+            showToast("Не вдалося надіслати файл (E2EE)", true);
+        }
+    }
+
+    // ---------- CALL BUTTON (через Telegram) ----------
+
+    function startCall() {
+        if (!peerUsername) {
+            showToast("Спочатку обери співрозмовника", true);
+            return;
+        }
+
+        const url = `https://t.me/${peerUsername}`;
+
+        try {
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink(url);
+            } else {
+                window.open(url, "_blank");
+            }
+        } catch (e) {
+            console.error("Помилка відкриття Telegram-посилання", e);
+            window.open(url, "_blank");
+        }
+    }
 </script>
 </body>
 </html>
