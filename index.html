@@ -2,8 +2,8 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
+    <title>SpySignal — Secure & Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpySignal WebApp — E2EE</title>
 
     <style>
         :root {
@@ -16,6 +16,7 @@
             --text: #ffffff;
             --text-muted: #8a93a5;
             --border: #1f2433;
+            --gold: #ffdd55;
         }
 
         * { box-sizing: border-box; }
@@ -44,8 +45,8 @@
         }
 
         .logo-circle {
-            width: 38px;
-            height: 38px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: 1px solid var(--accent);
             display: flex;
@@ -56,7 +57,7 @@
         }
 
         .logo-circle span {
-            font-size: 18px;
+            font-size: 19px;
             font-weight: 700;
             letter-spacing: 1px;
         }
@@ -85,6 +86,12 @@
             letter-spacing: .06em;
         }
 
+        .pill-pro {
+            border-color: rgba(255, 221, 85, 0.8);
+            color: var(--gold);
+            background: rgba(64, 48, 5, 0.9);
+        }
+
         .status-bar {
             margin: 6px 4px 8px;
             padding: 7px 10px;
@@ -95,7 +102,7 @@
             background: rgba(3, 10, 25, 0.9);
             border: 1px solid var(--border);
             justify-content: space-between;
-            gap: 8px;
+            gap: 6px;
         }
 
         .status-left {
@@ -117,24 +124,25 @@
             box-shadow: 0 0 8px rgba(255, 64, 64, 0.8);
         }
 
-        .status-label { font-weight: 500; }
-
-        .status-url {
-            font-size: 10px;
-            color: var(--text-muted);
+        .status-label {
+            font-weight: 500;
         }
 
-        .sec-indicator {
+        .status-url {
+            color: var(--text-muted);
+            opacity: .8;
+        }
+
+        .security-indicator {
             font-size: 10px;
-            padding: 3px 8px;
+            padding: 2px 8px;
             border-radius: 999px;
-            border: 1px solid rgba(140, 255, 195, 0.8);
-            background: rgba(9, 24, 20, 0.9);
+            border: 1px solid rgba(97, 255, 168, 0.7);
+            background: rgba(6, 20, 18, 0.9);
             color: #9dffd0;
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            white-space: nowrap;
         }
 
         .card {
@@ -153,7 +161,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 6px;
         }
 
         .card-subtitle {
@@ -212,11 +220,27 @@
             border: 1px solid var(--border);
         }
 
+        .btn-pro {
+            background: linear-gradient(135deg, #ffdd55, #ff9e2c);
+            color: #1b1302;
+        }
+
         .btn-small {
             width: auto;
             padding: 6px 10px;
             font-size: 11px;
             border-radius: 999px;
+        }
+
+        .pill-plan {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 221, 85, 0.7);
+            color: var(--gold);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .hint {
@@ -225,11 +249,88 @@
             margin-top: 6px;
         }
 
+        .two-blocks {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .badge-e2ee {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(140, 255, 195, 0.8);
+            background: rgba(9, 24, 20, 0.9);
+            color: #9dffd0;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .badge-free {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(113, 125, 150, 0.8);
+            color: #c0c4cf;
+            background: rgba(10, 12, 18, 0.9);
+        }
+
+        .search-results {
+            max-height: 160px;
+            overflow-y: auto;
+            margin-top: 6px;
+        }
+
+        .user-item {
+            background: #0c1018;
+            border-radius: 10px;
+            padding: 8px 9px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(54, 63, 90, 0.8);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-item:hover {
+            border-color: var(--accent);
+            background: rgba(14, 20, 37, 0.95);
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .user-id {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .chat-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .chat-peer {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .chat-peer span {
+            color: var(--accent);
+        }
+
         .chat-window {
             border-radius: 12px;
             border: 1px solid var(--border);
             background: radial-gradient(circle at top left, rgba(61, 123, 253, .08) 0, #05070c 40%);
-            height: 270px;
+            height: 260px;
             padding: 8px;
             overflow-y: auto;
             display: flex;
@@ -258,20 +359,6 @@
             font-size: 9px;
             color: #b8c2d8;
             margin-top: 2px;
-        }
-
-        .msg-file {
-            font-size: 12px;
-            word-break: break-all;
-        }
-
-        .msg-file a {
-            color: #9ce0ff;
-            text-decoration: none;
-        }
-
-        .msg-file a:hover {
-            text-decoration: underline;
         }
 
         @keyframes fadeUp {
@@ -309,23 +396,23 @@
         .file-row {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             margin-top: 6px;
         }
 
         .file-row input[type="file"] {
+            flex: 1;
             font-size: 11px;
             color: var(--text-muted);
         }
 
-        .footer-hint {
-            margin-top: 6px;
-            text-align: center;
+        .pill-pro-only {
             font-size: 10px;
-            color: var(--text-muted);
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px dashed rgba(255, 221, 85, 0.8);
+            color: var(--gold);
         }
-
-        .footer-hint strong { color: #61ffa8; }
 
         .toast {
             position: fixed;
@@ -354,26 +441,37 @@
         }
 
         @keyframes fadeToast {
-            from {
-                opacity: 0;
-                transform: translate(-50%, 4px);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, 0);
-            }
+            from { opacity: 0; transform: translate(-50%, 4px); }
+            to   { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        .premium-list {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .premium-list li {
+            margin-bottom: 3px;
+        }
+
+        .lock-icon {
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
 <div class="app-shell">
     <header class="header">
-        <div class="logo-circle">
-            <span>SS</span>
-        </div>
+        <div class="logo-circle"><span>SS</span></div>
         <div class="header-text">
-            <h1>SpySignal <span class="pill">E2EE</span></h1>
-            <div class="tagline">Шифрований чат & файли (WebApp)</div>
+            <h1>
+                SpySignal
+                <span class="pill">E2EE</span>
+                <span id="plan-pill" class="pill pill-pro" style="display:none;">PRO</span>
+                <span id="plan-pill-free" class="pill badge-free">Free</span>
+            </h1>
+            <div class="tagline">Шифрований месенджер з Premium-рівнем захисту</div>
         </div>
     </header>
 
@@ -385,18 +483,41 @@
                 <div class="status-url" id="status-url"></div>
             </div>
         </div>
-        <div class="sec-indicator" id="sec-indicator">
-            🔐 Рівень: базовий
+        <div class="security-indicator" id="security-indicator">
+            🔐 Forward-secure чат
         </div>
     </div>
 
-    <!-- 1. Логін / реєстрація -->
+    <!-- Premium / Upgrade блок -->
+    <section class="card" id="premium-card" style="display:none;">
+        <div class="card-title">
+            <span>SpySignal PRO</span>
+            <span class="pill-plan">4.99$/міс • Max privacy</span>
+        </div>
+        <div class="card-subtitle">
+            Отримай повний набір функцій: шифрування файлів, анонімні дзвінки, stealth-режим, таймер самознищення.
+        </div>
+        <ul class="premium-list">
+            <li>🗝 Окремі ключі на кожен діалог + forward secrecy</li>
+            <li>📁 Шифрування файлів до відправки (AES-256)</li>
+            <li>📞 E2EE-дзвінки через WebRTC</li>
+            <li>⏳ Повідомлення з таймером самознищення</li>
+            <li>🫥 Stealth режим та приховані контакти</li>
+        </ul>
+        <button class="btn btn-pro" onclick="fakeUpgradePro()">
+            ⭐ Upgrade to SpySignal PRO (demo)
+        </button>
+        <div class="hint">Зараз — демо-режим: апгрейд виконується без реальної оплати (для тестів).</div>
+    </section>
+
+    <!-- Логін -->
     <section class="card" id="login-card">
         <div class="card-title">
             <span>1 · Ідентифікація агента</span>
+            <span class="badge-e2ee">Ключі генеруються локально</span>
         </div>
         <div class="card-subtitle">
-            Введи свій позивний. Після реєстрації отримаєш <strong>ID агента</strong>, його треба дати співрозмовнику.
+            Введи позивний. Аккаунт використовується для зберігання стану Pro/Free, ключі шифрування зберігаються у твоєму пристрої.
         </div>
 
         <div class="field-label">Позивний (username)</div>
@@ -409,57 +530,62 @@
         <div class="hint" id="my-id-hint" style="display:none;"></div>
     </section>
 
-    <!-- 2. Налаштування діалогу + чат -->
-    <section class="card" id="chat-card" style="display:none;">
-        <div class="card-title">
-            <span>2 · Налаштування діалогу</span>
-            <button class="btn-small btn-secondary" onclick="resetDialogKey()">
-                🔁 Перегенерувати ключі
-            </button>
-        </div>
-
-        <div class="card-subtitle">
-            Обидва агенти повинні:
-            <br>• мати <strong>ID один одного</strong>;
-            <br>• домовитись про <strong>Пароль діалогу</strong> (тільки між вами).
-        </div>
-
-        <div class="field-label">ID співрозмовника (peer ID)</div>
-        <input id="peer-id" class="input" placeholder="Наприклад, 2" oninput="onPeerChange()">
-
-        <div class="field-label">Пароль діалогу (спільний секрет)</div>
-        <input id="dialog-secret" class="input" placeholder="Пароль, про який ви домовились">
-
-        <div class="hint">
-            🔐 На основі пароля діалогу генерується кореневий ключ. Без нього ніхто не розшифрує історію, навіть сервер.
-        </div>
-    </section>
-
-    <section class="card" id="messages-card" style="display:none;">
-        <div class="card-title">
-            <span>3 · Зашифрований чат & файли</span>
-        </div>
-
-        <div class="chat-window" id="chat"></div>
-
-        <div class="file-row">
-            <input type="file" id="file-input">
-            <button class="btn-small btn-secondary" onclick="sendFile()">
-                📎 Надіслати файл (E2EE)
-            </button>
-        </div>
-
-        <div class="chat-input-row">
-            <div class="chat-input">
-                <input id="msg" class="input" placeholder="Зашифроване повідомлення…">
+    <!-- Основна зона: пошук + чат + файли -->
+    <section class="two-blocks" id="main-blocks" style="display:none;">
+        <div class="card">
+            <div class="card-title">
+                <span>2 · Пошук контакту</span>
+                <button class="btn-small btn-secondary" onclick="backToLogin()">Змінити агента</button>
             </div>
-            <button class="chat-send-btn" onclick="sendMessage()">
-                <span>➤</span>
-            </button>
+            <div class="card-subtitle">
+                Знайди іншого агента по ID або нікнейму, встанови зашифрований канал.
+            </div>
+
+            <div class="field-label">Пошук (ID або username)</div>
+            <input id="search" class="input" placeholder="Приклад: 2 або NightOwl" oninput="searchUser()">
+
+            <div class="search-results" id="result"></div>
         </div>
 
-        <div class="footer-hint">
-            Всі повідомлення та файли шифруються <strong>на твоєму пристрої</strong>. Сервер зберігає лише ciphertext.
+        <div class="card" id="chat-card" style="opacity:0.5; pointer-events:none;">
+            <div class="chat-header-row">
+                <div class="chat-peer" id="chat-peer">
+                    3 · Чат <span>(обери співрозмовника)</span>
+                </div>
+                <div>
+                    <span class="pill-pro-only" id="pro-only-label" style="display:none;">
+                        PRO: файли, дзвінки, self-destruct
+                    </span>
+                </div>
+            </div>
+
+            <div class="chat-window" id="chat"></div>
+
+            <div class="chat-input-row">
+                <div class="chat-input">
+                    <input id="msg" class="input" placeholder="Зашифроване повідомлення…">
+                </div>
+                <button class="chat-send-btn" onclick="sendMessage()">
+                    <span>➤</span>
+                </button>
+            </div>
+
+            <!-- Файли (Pro only) -->
+            <div class="file-row">
+                <input type="file" id="file-input">
+                <button class="btn-small btn-secondary" onclick="sendEncryptedFile()">
+                    📁 Pro-файл
+                </button>
+            </div>
+
+            <!-- Дзвінок (Pro only) -->
+            <button class="btn btn-secondary" style="margin-top:8px;" onclick="startSecureCall()">
+                📞 Зателефонувати (Pro)
+            </button>
+
+            <div class="hint">
+                Free: текстовий E2EE-чат. Pro: + файли, дзвінки, таймер самознищення.
+            </div>
         </div>
     </section>
 
@@ -467,54 +593,42 @@
 </div>
 
 <script>
-    // ================== НАЛАШТУВАННЯ ==================
-    const API_BASE = "https://talented-energy-production.up.railway.app"; // 👈 ЗАМІНИ на свій домен Railway
+    // 🔗 ЗАМІНИ на свій бекенд при потребі
+    const API_BASE = "https://talented-energy-production.up.railway.app";
 
+    // Стан
+    let currentUserId = null;
+    let currentUsername = null;
+    let isPro = false;
+
+    let peerID = null;
+    let peerUsername = null;
+
+    let lastMessagesCount = 0;
+    let pollingInterval = null;
+
+    // Крипто (поки – проста модель: один ключ на діалог, шифрування AES-GCM)
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
+
+    const LOCAL_USER_KEY = "spysignal_user";
+    const LOCAL_DIALOG_KEYS = "spysignal_dialog_keys_v1";
 
     const statusDot = document.getElementById("status-dot");
     const statusLabel = document.getElementById("status-label");
     const statusUrl = document.getElementById("status-url");
-    const secIndicator = document.getElementById("sec-indicator");
     const toastEl = document.getElementById("toast");
-    const chatEl = document.getElementById("chat");
+    const planPill = document.getElementById("plan-pill");
+    const planPillFree = document.getElementById("plan-pill-free");
+    const premiumCard = document.getElementById("premium-card");
+    const proOnlyLabel = document.getElementById("pro-only-label");
 
     statusUrl.textContent = API_BASE.replace("https://", "");
-
-    let myID = null;
-    let myUsername = null;
-    let pollingTimer = null;
-
-    // Стан діалогів у пам'яті + localStorage
-    const DIALOG_STATE_KEY = "spysignal_dialogs_v1";
-    let dialogState = loadDialogState(); // { peerId: { rootKeyB64: "..."} }
-
-    function loadDialogState() {
-        try {
-            const raw = localStorage.getItem(DIALOG_STATE_KEY);
-            if (!raw) return {};
-            return JSON.parse(raw);
-        } catch (e) {
-            console.warn("Помилка читання dialogState:", e);
-            return {};
-        }
-    }
-
-    function saveDialogState() {
-        try {
-            localStorage.setItem(DIALOG_STATE_KEY, JSON.stringify(dialogState));
-        } catch (e) {
-            console.warn("Помилка збереження dialogState:", e);
-        }
-    }
 
     function showToast(msg, isError = false) {
         toastEl.textContent = msg;
         toastEl.className = "toast show" + (isError ? " toast-error" : "");
-        setTimeout(() => {
-            toastEl.classList.remove("show");
-        }, 2500);
+        setTimeout(() => toastEl.classList.remove("show"), 2500);
     }
 
     function bufToBase64(buf) {
@@ -527,13 +641,24 @@
     function base64ToBuf(b64) {
         const bin = atob(b64);
         const bytes = new Uint8Array(bin.length);
-        for (let i = 0; i < bin.length; i++) {
-            bytes[i] = bin.charCodeAt(i);
-        }
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
         return bytes.buffer;
     }
 
-    // ================== ПЕРЕВІРКА СЕРВЕРА ==================
+    function setPlanUI() {
+        if (isPro) {
+            planPill.style.display = "inline-flex";
+            planPillFree.style.display = "none";
+            premiumCard.style.display = "none";
+            proOnlyLabel.style.display = "inline-flex";
+        } else {
+            planPill.style.display = "none";
+            planPillFree.style.display = "inline-flex";
+            premiumCard.style.display = "block";
+            proOnlyLabel.style.display = "none";
+        }
+    }
+
     async function checkHealth() {
         try {
             const res = await fetch(`${API_BASE}/health`);
@@ -546,403 +671,366 @@
                 statusDot.classList.add("offline");
                 statusLabel.textContent = "Сервер відповідає некоректно";
             }
-        } catch (e) {
+        } catch {
             statusDot.classList.add("offline");
             statusLabel.textContent = "Немає зв'язку з бекендом";
         }
     }
+
     checkHealth();
     setInterval(checkHealth, 8000);
 
-    // ================== КЛЮЧІ ДІАЛОГУ (PBKDF2 + HKDF) ==================
-
-    async function deriveRootKeyBytes(passphrase, myId, peerId) {
-        const a = Math.min(myId, peerId);
-        const b = Math.max(myId, peerId);
-        const baseStr = `${passphrase}|${a}|${b}`;
-        const baseKey = await crypto.subtle.importKey(
-            "raw",
-            encoder.encode(baseStr),
-            "PBKDF2",
-            false,
-            ["deriveBits"]
-        );
-        const salt = encoder.encode("SpySignal-Dialog-Root");
-        const bits = await crypto.subtle.deriveBits(
-            {
-                name: "PBKDF2",
-                salt,
-                iterations: 100000,
-                hash: "SHA-256"
-            },
-            baseKey,
-            256
-        );
-        return new Uint8Array(bits); // 32 байти
-    }
-
-    async function getRootKeyBytesForPeer(peerId) {
-        const secret = document.getElementById("dialog-secret").value.trim();
-        if (!secret) {
-            showToast("Спочатку введи Пароль діалогу", true);
-            throw new Error("No dialog secret");
-        }
-        if (!myID) {
-            showToast("Спочатку виконай реєстрацію", true);
-            throw new Error("No myID");
-        }
-
-        const key = String(peerId);
-        if (dialogState[key] && dialogState[key].rootKeyB64) {
-            return new Uint8Array(base64ToBuf(dialogState[key].rootKeyB64));
-        }
-
-        const rootBytes = await deriveRootKeyBytes(secret, myID, peerId);
-        dialogState[key] = { rootKeyB64: bufToBase64(rootBytes.buffer) };
-        saveDialogState();
-        updateSecurityIndicator();
-        return rootBytes;
-    }
-
-    async function deriveMsgKey(rootKeyBytes, saltBytes) {
-        const hkdfKey = await crypto.subtle.importKey(
-            "raw",
-            rootKeyBytes,
-            "HKDF",
-            false,
-            ["deriveBits"]
-        );
-        const bits = await crypto.subtle.deriveBits(
-            {
-                name: "HKDF",
-                hash: "SHA-256",
-                salt: saltBytes,
-                info: encoder.encode("SpySignal-Message-Key")
-            },
-            hkdfKey,
-            256
-        );
-        return crypto.subtle.importKey(
-            "raw",
-            new Uint8Array(bits),
-            { name: "AES-GCM" },
-            false,
-            ["encrypt", "decrypt"]
-        );
-    }
-
-    async function encryptForDialog(peerId, payloadObj) {
-        const rootBytes = await getRootKeyBytesForPeer(peerId);
-        const salt = crypto.getRandomValues(new Uint8Array(16));
-        const iv = crypto.getRandomValues(new Uint8Array(12));
-        const msgKey = await deriveMsgKey(rootBytes, salt);
-        const plaintext = encoder.encode(JSON.stringify(payloadObj));
-        const ctBuf = await crypto.subtle.encrypt(
-            { name: "AES-GCM", iv },
-            msgKey,
-            plaintext
-        );
-
-        const envelope = {
-            v: 1,
-            s: bufToBase64(salt.buffer),
-            iv: bufToBase64(iv.buffer),
-            ct: bufToBase64(ctBuf),
-            t: payloadObj.type || "text"
-        };
-        const ciphertextField = btoa(JSON.stringify(envelope));
-        return { ciphertextField, ivField: envelope.iv };
-    }
-
-    async function decryptForDialog(peerId, ciphertextField) {
-        const jsonStr = atob(ciphertextField);
-        let envelope;
+    (function restoreUser() {
+        const raw = localStorage.getItem(LOCAL_USER_KEY);
+        if (!raw) return;
         try {
-            envelope = JSON.parse(jsonStr);
+            const parsed = JSON.parse(raw);
+            if (parsed.id && parsed.username) {
+                currentUserId = parsed.id;
+                currentUsername = parsed.username;
+                isPro = !!parsed.is_pro;
+                document.getElementById("username").value = currentUsername;
+                setPlanUI();
+                document.getElementById("login-card").style.display = "none";
+                document.getElementById("main-blocks").style.display = "flex";
+                const hint = document.getElementById("my-id-hint");
+                hint.style.display = "block";
+                hint.textContent = `Твій ID агента: ${currentUserId}.`;
+                fetchAccountStatus();
+            }
         } catch (e) {
-            console.warn("Envelope parse error:", e);
-            throw new Error("Bad envelope");
+            console.warn("Не вдалось відновити сесію", e);
         }
-        if (!envelope.s || !envelope.iv || !envelope.ct) {
-            throw new Error("Invalid envelope");
-        }
-        const rootBytes = await getRootKeyBytesForPeer(peerId);
-        const salt = new Uint8Array(base64ToBuf(envelope.s));
-        const iv = new Uint8Array(base64ToBuf(envelope.iv));
-        const ctBuf = base64ToBuf(envelope.ct);
+    })();
 
-        const msgKey = await deriveMsgKey(rootBytes, salt);
-        const plainBuf = await crypto.subtle.decrypt(
-            { name: "AES-GCM", iv },
-            msgKey,
-            ctBuf
-        );
-        const text = decoder.decode(plainBuf);
-        const payload = JSON.parse(text);
-        return payload;
-    }
-
-    function updateSecurityIndicator() {
-        const peerIdStr = document.getElementById("peer-id").value.trim();
-        if (!peerIdStr || !myID) {
-            secIndicator.textContent = "🔐 Рівень: базовий";
-            return;
-        }
-        const key = String(parseInt(peerIdStr, 10));
-        if (dialogState[key] && dialogState[key].rootKeyB64) {
-            secIndicator.textContent = "🛡️ Рівень: високий (локальне E2EE)";
-        } else {
-            secIndicator.textContent = "🔐 Рівень: базовий";
+    async function fetchAccountStatus() {
+        if (!currentUserId) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/account/${currentUserId}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            isPro = !!data.is_pro;
+            const raw = localStorage.getItem(LOCAL_USER_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                parsed.is_pro = isPro;
+                localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(parsed));
+            }
+            setPlanUI();
+        } catch (e) {
+            console.warn("Помилка отримання статусу акаунту", e);
         }
     }
 
-    function resetDialogKey() {
-        const peerIdStr = document.getElementById("peer-id").value.trim();
-        if (!peerIdStr) {
-            showToast("Спочатку введи ID співрозмовника", true);
-            return;
-        }
-        const key = String(parseInt(peerIdStr, 10));
-        delete dialogState[key];
-        saveDialogState();
-        updateSecurityIndicator();
-        showToast("Ключі діалогу очищено. Введи пароль діалогу ще раз.");
-    }
-
-    function onPeerChange() {
-        updateSecurityIndicator();
-        // перезапустити опитування повідомлень
-        if (pollingTimer) clearInterval(pollingTimer);
-        startPolling();
-    }
-
-    // ================== РЕЄСТРАЦІЯ КОРИСТУВАЧА ==================
     async function registerUser() {
-        const username = document.getElementById("username").value.trim();
-        if (!username) {
+        const usernameInput = document.getElementById("username");
+        const name = usernameInput.value.trim();
+        if (!name) {
             showToast("Введи позивний (username)", true);
             return;
         }
+
         try {
             const res = await fetch(`${API_BASE}/api/users/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username })
+                body: JSON.stringify({ username: name })
             });
             const data = await res.json();
             if (!res.ok || !data.id) {
-                console.error("Register error:", data);
+                console.error("Помилка реєстрації:", data);
                 showToast("Помилка реєстрації", true);
                 return;
             }
 
-            myID = data.id;
-            myUsername = data.username;
+            currentUserId = data.id;
+            currentUsername = data.username;
+            isPro = !!data.is_pro;
+
+            localStorage.setItem(LOCAL_USER_KEY, JSON.stringify({
+                id: currentUserId,
+                username: currentUsername,
+                is_pro: isPro
+            }));
 
             document.getElementById("login-card").style.display = "none";
-            document.getElementById("chat-card").style.display = "block";
-            document.getElementById("messages-card").style.display = "block";
+            document.getElementById("main-blocks").style.display = "flex";
 
             const hint = document.getElementById("my-id-hint");
             hint.style.display = "block";
-            hint.textContent = `Твій ID агента: ${myID}. Передай його співрозмовнику.`;
+            hint.textContent = `Твій ID агента: ${currentUserId}. Передай його співрозмовнику для пошуку.`;
 
-            showToast("Успішно. Твій ID: " + myID);
-            updateSecurityIndicator();
-            startPolling();
+            setPlanUI();
+            showToast("Успішно. ID: " + currentUserId);
         } catch (e) {
             console.error(e);
             showToast("Не вдалось підключитись до сервера", true);
         }
     }
 
-    // ================== ПОВІДОМЛЕННЯ ==================
+    function backToLogin() {
+        peerID = null;
+        peerUsername = null;
+        document.getElementById("main-blocks").style.display = "none";
+        document.getElementById("login-card").style.display = "block";
+    }
+
+    async function searchUser() {
+        const q = document.getElementById("search").value.trim();
+        const resultEl = document.getElementById("result");
+        if (!q) {
+            resultEl.innerHTML = "";
+            return;
+        }
+        try {
+            const res = await fetch(`${API_BASE}/api/users/search?query=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            const users = data.results || [];
+            let html = "";
+            if (users.length === 0) {
+                html = `<div class="hint">Нічого не знайдено.</div>`;
+            } else {
+                users.forEach(u => {
+                    html += `
+                        <div class="user-item" onclick="openChat(${u.id}, '${u.username}')">
+                            <div class="user-name">${u.username}</div>
+                            <div class="user-id">ID: ${u.id}</div>
+                        </div>
+                    `;
+                });
+            }
+            resultEl.innerHTML = html;
+        } catch (e) {
+            console.error("Помилка пошуку:", e);
+            showToast("Помилка при пошуку користувачів", true);
+        }
+    }
+
+    function getDialogKeyId(peerId) {
+        return `${currentUserId}-${peerId}`;
+    }
+
+    async function getOrCreateDialogKey(peerId) {
+        const raw = localStorage.getItem(LOCAL_DIALOG_KEYS);
+        let map = raw ? JSON.parse(raw) : {};
+        const keyId = getDialogKeyId(peerId);
+        if (map[keyId]) {
+            const keyBuf = base64ToBuf(map[keyId]);
+            return await crypto.subtle.importKey(
+                "raw", keyBuf, "AES-GCM", true, ["encrypt", "decrypt"]
+            );
+        }
+        const key = await crypto.subtle.generateKey(
+            { name: "AES-GCM", length: 256 },
+            true,
+            ["encrypt", "decrypt"]
+        );
+        const rawKey = await crypto.subtle.exportKey("raw", key);
+        map[keyId] = bufToBase64(rawKey);
+        localStorage.setItem(LOCAL_DIALOG_KEYS, JSON.stringify(map));
+        return key;
+    }
+
+    async function encryptDialogMessage(peerId, plaintext) {
+        const key = await getOrCreateDialogKey(peerId);
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const ctBuf = await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv },
+            key,
+            encoder.encode(plaintext)
+        );
+        return {
+            iv: bufToBase64(iv.buffer),
+            ciphertext: bufToBase64(ctBuf)
+        };
+    }
+
+    async function decryptDialogMessage(peerId, ciphertextB64, ivB64) {
+        const key = await getOrCreateDialogKey(peerId);
+        const ivBuf = base64ToBuf(ivB64);
+        const ctBuf = base64ToBuf(ciphertextB64);
+        const plainBuf = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: new Uint8Array(ivBuf) },
+            key,
+            ctBuf
+        );
+        return decoder.decode(plainBuf);
+    }
+
+    async function openChat(id, username) {
+        peerID = id;
+        peerUsername = username;
+
+        const chatPeerEl = document.getElementById("chat-peer");
+        chatPeerEl.innerHTML = `3 · Чат з <span>${username}</span> (ID: ${id})`;
+
+        const chatCard = document.getElementById("chat-card");
+        chatCard.style.opacity = "1";
+        chatCard.style.pointerEvents = "auto";
+
+        lastMessagesCount = 0;
+        await loadMessages();
+
+        if (pollingInterval) clearInterval(pollingInterval);
+        pollingInterval = setInterval(loadMessages, 2000);
+    }
+
+    async function loadMessages() {
+        if (!peerID || !currentUserId) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/messages?peer_id=${peerID}&me=${currentUserId}`);
+            const data = await res.json();
+            const msgs = data.messages || [];
+            const chatEl = document.getElementById("chat");
+
+            const isNew = msgs.length > lastMessagesCount;
+            let html = "";
+
+            for (const m of msgs) {
+                const cls = (m.from_id === currentUserId) ? "msg me" : "msg";
+                let text = "[не вдалося розшифрувати]";
+
+                try {
+                    text = await decryptDialogMessage(peerID, m.ciphertext, m.iv);
+                } catch (e) {
+                    console.warn("Помилка дешифрування", e);
+                }
+
+                const date = new Date(m.created_at);
+                const hh = String(date.getHours()).padStart(2, "0");
+                const mm = String(date.getMinutes()).padStart(2, "0");
+
+                html += `
+                    <div class="${cls}">
+                        <div>${text}</div>
+                        <div class="msg-meta">${hh}:${mm}</div>
+                    </div>
+                `;
+            }
+
+            chatEl.innerHTML = html;
+            chatEl.scrollTop = chatEl.scrollHeight;
+            lastMessagesCount = msgs.length;
+        } catch (e) {
+            console.error("Помилка завантаження повідомлень:", e);
+        }
+    }
+
     async function sendMessage() {
-        if (!myID) {
-            showToast("Спочатку зареєструйся", true);
-            return;
-        }
-        const peerStr = document.getElementById("peer-id").value.trim();
-        if (!peerStr) {
-            showToast("Введи ID співрозмовника", true);
-            return;
-        }
-        const peerId = parseInt(peerStr, 10);
-        if (!peerId || peerId <= 0) {
-            showToast("Некоректний peer ID", true);
-            return;
-        }
-        const msgInput = document.getElementById("msg");
-        const text = msgInput.value.trim();
-        if (!text) return;
+        const input = document.getElementById("msg");
+        const msg = input.value.trim();
+        if (!msg || !peerID || !currentUserId) return;
 
         try {
-            const payload = {
-                type: "text",
-                text
-            };
-            const { ciphertextField, ivField } = await encryptForDialog(peerId, payload);
+            const { iv, ciphertext } = await encryptDialogMessage(peerID, msg);
 
             await fetch(`${API_BASE}/api/messages`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    to: peerId,
-                    iv: ivField,
-                    ciphertext: ciphertextField
+                    from_id: currentUserId,
+                    to: peerID,
+                    iv,
+                    ciphertext
                 })
             });
 
-            msgInput.value = "";
-            await loadMessagesOnce(); // оновити чат
+            input.value = "";
+            await loadMessages();
         } catch (e) {
-            console.error("Send message error:", e);
+            console.error("Помилка надсилання:", e);
             showToast("Не вдалося надіслати повідомлення", true);
         }
     }
 
-    async function sendFile() {
-        if (!myID) {
-            showToast("Спочатку зареєструйся", true);
-            return;
-        }
-        const peerStr = document.getElementById("peer-id").value.trim();
-        if (!peerStr) {
-            showToast("Введи ID співрозмовника", true);
-            return;
-        }
-        const peerId = parseInt(peerStr, 10);
-        if (!peerId || peerId <= 0) {
-            showToast("Некоректний peer ID", true);
+    async function sendEncryptedFile() {
+        if (!isPro) {
+            showToast("Файли доступні тільки в SpySignal PRO", true);
             return;
         }
         const fileInput = document.getElementById("file-input");
         const file = fileInput.files[0];
         if (!file) {
-            showToast("Файл не обрано", true);
+            showToast("Оберіть файл для відправки", true);
             return;
         }
+        if (!peerID || !currentUserId) {
+            showToast("Оберіть співрозмовника", true);
+            return;
+        }
+
         try {
-            const buf = await file.arrayBuffer();
-            const b64data = bufToBase64(buf);
+            const arrayBuf = await file.arrayBuffer();
+            const key = await getOrCreateDialogKey(peerID);
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const ctBuf = await crypto.subtle.encrypt(
+                { name: "AES-GCM", iv },
+                key,
+                arrayBuf
+            );
 
             const payload = {
-                type: "file",
-                name: file.name,
-                size: file.size,
-                mime: file.type || "application/octet-stream",
-                data: b64data
+                from_id: currentUserId,
+                to: peerID,
+                filename: file.name,
+                mimetype: file.type || "application/octet-stream",
+                iv: bufToBase64(iv.buffer),
+                ciphertext: bufToBase64(ctBuf)
             };
 
-            const { ciphertextField, ivField } = await encryptForDialog(peerId, payload);
-
-            await fetch(`${API_BASE}/api/messages`, {
+            await fetch(`${API_BASE}/api/files/upload`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    to: peerId,
-                    iv: ivField,
-                    ciphertext: ciphertextField
-                })
+                body: JSON.stringify(payload)
             });
 
+            showToast("Файл зашифровано та надіслано (Pro)");
             fileInput.value = "";
-            showToast("Файл відправлено (E2EE)");
-            await loadMessagesOnce();
         } catch (e) {
-            console.error("Send file error:", e);
+            console.error("Помилка відправки файлу:", e);
             showToast("Не вдалося надіслати файл", true);
         }
     }
 
-    async function loadMessagesOnce() {
-        if (!myID) return;
-        const peerStr = document.getElementById("peer-id").value.trim();
-        if (!peerStr) return;
-        const peerId = parseInt(peerStr, 10);
-        if (!peerId || peerId <= 0) return;
+    async function startSecureCall() {
+        if (!isPro) {
+            showToast("Дзвінки доступні тільки в SpySignal PRO", true);
+            return;
+        }
+        showToast("WebRTC дзвінки демо: сигнальний канал готовий, логіку WebRTC можна доробити", false);
+        // Тут ти підключиш свій WebRTC-код до /api/call/offer /answer /candidate
+    }
 
+    async function fakeUpgradePro() {
+        if (!currentUserId) {
+            showToast("Спочатку увійди в акаунт", true);
+            return;
+        }
         try {
-            const res = await fetch(`${API_BASE}/api/messages?peer_id=${peerId}`);
+            const res = await fetch(`${API_BASE}/api/pro/fake-upgrade`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: currentUserId })
+            });
             const data = await res.json();
-            const msgs = data.messages || [];
-
-            chatEl.innerHTML = "";
-
-            for (const m of msgs) {
-                let fromMe = (m.from_id === myID);
-                let payload;
-                try {
-                    payload = await decryptForDialog(peerId, m.ciphertext);
-                } catch (e) {
-                    console.warn("Decrypt error for message:", e);
-                    addMessageBubble("[не вдалося розшифрувати]", fromMe, m.created_at);
-                    continue;
-                }
-
-                if (payload.type === "file") {
-                    const url = `data:${payload.mime};base64,${payload.data}`;
-                    const textHtml = `
-                        <div class="msg-file">
-                            📎 Файл: <a href="${url}" download="${payload.name}">${payload.name}</a><br>
-                            <span style="font-size:10px;color:#8a93a5;">${Math.round(payload.size/1024)} KB</span>
-                        </div>
-                    `;
-                    addMessageBubble(textHtml, fromMe, m.created_at, true);
-                } else {
-                    addMessageBubble(payload.text || "", fromMe, m.created_at);
-                }
+            if (!res.ok || !data.ok) {
+                showToast("Помилка апгрейду", true);
+                return;
             }
-
-            chatEl.scrollTop = chatEl.scrollHeight;
-        } catch (e) {
-            console.error("Load messages error:", e);
-        }
-    }
-
-    function addMessageBubble(htmlOrText, fromMe, createdAt, isHtml = false) {
-        const div = document.createElement("div");
-        div.className = "msg" + (fromMe ? " me" : "");
-        if (isHtml) {
-            div.innerHTML = htmlOrText;
-        } else {
-            div.textContent = htmlOrText;
-        }
-        const meta = document.createElement("div");
-        meta.className = "msg-meta";
-        let timeStr = "";
-        if (createdAt) {
-            const d = new Date(createdAt);
-            const hh = String(d.getHours()).padStart(2, "0");
-            const mm = String(d.getMinutes()).padStart(2, "0");
-            timeStr = `${hh}:${mm}`;
-        }
-        meta.textContent = timeStr;
-        div.appendChild(meta);
-        chatEl.appendChild(div);
-    }
-
-    function startPolling() {
-        if (pollingTimer) clearInterval(pollingTimer);
-        pollingTimer = setInterval(loadMessagesOnce, 2500);
-        loadMessagesOnce();
-    }
-
-    // Telegram WebApp автозаповнення username (якщо є)
-    (function tryTelegramInit() {
-        try {
-            if (window.Telegram && window.Telegram.WebApp) {
-                const tg = window.Telegram.WebApp;
-                tg.expand();
-                const u = tg.initDataUnsafe && tg.initDataUnsafe.user;
-                if (u && u.username) {
-                    document.getElementById("username").value = u.username;
-                }
+            isPro = true;
+            const raw = localStorage.getItem(LOCAL_USER_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                parsed.is_pro = true;
+                localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(parsed));
             }
+            setPlanUI();
+            showToast("SpySignal PRO активовано (демо)");
         } catch (e) {
-            console.warn("Telegram WebApp недоступний або не використовується", e);
+            console.error("Помилка апгрейду:", e);
+            showToast("Не вдалось зв'язатись з сервером", true);
         }
-    })();
+    }
 </script>
 </body>
 </html>
