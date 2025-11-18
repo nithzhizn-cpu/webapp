@@ -1,1337 +1,994 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <title>SpySignal — E2EE Chat + Files + Calls</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!--
-    ⚙️ Очікувана структура бекенду:
-
-    ROOT:
-      GET  /health
-
-    API (префікс /api):
-      POST /api/users/register         {username} => {id, username, token}
-      GET  /api/users/search?query=...
-      POST /api/users/pubkey           {pubkey: json-string}
-      GET  /api/users/pubkey/{user_id}
-
-      GET  /api/messages?peer_id=...
-      POST /api/messages
-          {to, iv, ciphertext, msg_type: "text"|"file", file_id?}
-
-      POST /api/files/upload   (multipart/form-data)
-          fields: file, to, iv
-
-      GET  /api/files/{file_id}   (encrypted blob)
-
-      POST /api/call/offer      {to, sdp}
-      POST /api/call/answer     {to, sdp}
-      POST /api/call/candidate  {to, candidate}
-      GET  /api/call/poll?user_id=ME&since_id=LAST
-          => {events:[{id, type:"offer"|"answer"|"candidate", from_id, sdp?, candidate?}]}
-  -->
-
-  <style>
-    :root {
-      --bg: #05070c;
-      --bg-alt: #0c1018;
-      --card: #121826;
-      --accent: #3d7bfd;
-      --accent-soft: rgba(61, 123, 253, 0.15);
-      --danger: #ff4d4d;
-      --text: #ffffff;
-      --text-muted: #8a93a5;
-      --border: #1f2433;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #182744 0, #05070c 55%);
-      color: var(--text);
-    }
-
-    .app-shell {
-      max-width: 480px;
-      margin: 0 auto;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      padding: 12px;
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 12px 4px;
-    }
-
-    .logo-circle {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: 1px solid var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 12px rgba(0, 255, 180, 0.35);
-      background: radial-gradient(circle at 30% 20%, #26ffe0 0, #060811 55%);
-    }
-
-    .logo-circle span {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    .header-text h1 {
-      font-size: 18px;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .tagline {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    .pill {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(61, 123, 253, 0.4);
-      background: rgba(8, 15, 32, 0.9);
-      text-transform: uppercase;
-      letter-spacing: .06em;
-    }
-
-    .status-bar {
-      margin: 6px 4px 8px;
-      padding: 7px 10px;
-      border-radius: 999px;
-      display: flex;
-      align-items: center;
-      font-size: 11px;
-      background: rgba(3, 10, 25, 0.9);
-      border: 1px solid var(--border);
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-right: 6px;
-      box-shadow: 0 0 10px rgba(77, 255, 153, 0.8);
-      background: radial-gradient(circle, #81ffb7 0, #08c96a 60%);
-    }
-
-    .status-dot.offline {
-      background: radial-gradient(circle, #ff9b9b 0, #ff4040 60%);
-      box-shadow: 0 0 8px rgba(255, 64, 64, 0.8);
-    }
-
-    .status-label {
-      font-weight: 500;
-      margin-right: 4px;
-    }
-
-    .status-url {
-      color: var(--text-muted);
-      opacity: .8;
-    }
-
-    .card {
-      background: rgba(11, 15, 27, 0.96);
-      border-radius: 16px;
-      padding: 14px;
-      border: 1px solid var(--border);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-      margin-bottom: 10px;
-    }
-
-    .card-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .card-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    .field-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin: 6px 2px 2px;
-    }
-
-    .input {
-      width: 100%;
-      padding: 9px 11px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #060a13;
-      color: var(--text);
-      font-size: 14px;
-      outline: none;
-    }
-
-    .input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(61, 123, 253, 0.6);
-    }
-
-    .btn {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: none;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      background: linear-gradient(135deg, #3d7bfd, #47d3ff);
-      color: #fff;
-      margin-top: 10px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .btn:active {
-      transform: translateY(1px);
-      filter: brightness(.95);
-    }
-
-    .btn-secondary {
-      background: rgba(7, 12, 26, 0.9);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .btn-small {
-      width: auto;
-      padding: 6px 10px;
-      font-size: 11px;
-      border-radius: 999px;
-    }
-
-    .hint {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 6px;
-    }
-
-    .two-blocks {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .search-results {
-      max-height: 160px;
-      overflow-y: auto;
-      margin-top: 6px;
-    }
-
-    .user-item {
-      background: #0c1018;
-      border-radius: 10px;
-      padding: 8px 9px;
-      margin-bottom: 6px;
-      border: 1px solid rgba(54, 63, 90, 0.8);
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .user-item:hover {
-      border-color: var(--accent);
-      background: rgba(14, 20, 37, 0.95);
-    }
-
-    .user-name {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .user-id {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 1px;
-    }
-
-    .chat-header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-
-    .chat-peer {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .chat-peer span {
-      color: var(--accent);
-    }
-
-    .typing-indicator {
-      font-size: 11px;
-      color: var(--text-muted);
-      min-height: 14px;
-    }
-
-    .chat-window {
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: radial-gradient(circle at top left, rgba(61, 123, 253, .08) 0, #05070c 40%);
-      height: 270px;
-      padding: 8px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .msg {
-      padding: 7px 10px;
-      border-radius: 11px;
-      font-size: 13px;
-      max-width: 78%;
-      line-height: 1.4;
-      background: #171f32;
-      animation: fadeUp .18s ease-out forwards;
-      opacity: 0;
-      transform: translateY(4px);
-      word-wrap: break-word;
-    }
-
-    .msg.me {
-      margin-left: auto;
-      background: linear-gradient(135deg, #3d7bfd, #40c3ff);
-    }
-
-    .msg-meta {
-      font-size: 9px;
-      color: #b8c2d8;
-      margin-top: 2px;
-    }
-
-    .msg-file-link {
-      font-size: 12px;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-
-    @keyframes fadeUp {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .chat-input-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .chat-input {
-      flex: 1;
-    }
-
-    .chat-send-btn {
-      width: 44px;
-      height: 38px;
-      border-radius: 12px;
-      background: var(--accent);
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
-    .chat-send-btn span {
-      font-size: 18px;
-    }
-
-    .file-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 6px;
-    }
-
-    .file-name {
-      font-size: 11px;
-      color: var(--text-muted);
-      max-width: 220px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .footer-hint {
-      margin-top: 6px;
-      text-align: center;
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-
-    .footer-hint strong {
-      color: #61ffa8;
-    }
-
-    .badge-e2ee {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(140, 255, 195, 0.8);
-      background: rgba(9, 24, 20, 0.9);
-      color: #9dffd0;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #141a28;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      padding: 7px 14px;
-      font-size: 12px;
-      display: none;
-      align-items: center;
-      gap: 6px;
-      z-index: 999;
-    }
-
-    .toast.show {
-      display: inline-flex;
-      animation: fadeToast .25s ease-out;
-    }
-
-    .toast-error {
-      border-color: rgba(255, 85, 85, 0.6);
-      color: #ffb3b3;
-    }
-
-    @keyframes fadeToast {
-      from {
-        opacity: 0;
-        transform: translate(-50%, 4px);
-      }
-      to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-      }
-    }
-
-    /* Call UI */
-    .call-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 6px;
-      flex-wrap: wrap;
-    }
-
-    .call-status {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .btn-call {
-      padding: 6px 12px;
-      font-size: 12px;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(135deg, #20c997, #02b3ff);
-      color: #fff;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .btn-call.end {
-      background: linear-gradient(135deg, #ff4d4d, #ff7b7b);
-    }
-
-    audio {
-      display: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpySignal E2EE WebApp</title>
+
+    <style>
+        :root {
+            --bg: #05070c;
+            --bg-alt: #0c1018;
+            --card: #121826;
+            --accent: #3d7bfd;
+            --accent-soft: rgba(61, 123, 253, 0.15);
+            --danger: #ff4d4d;
+            --text: #ffffff;
+            --text-muted: #8a93a5;
+            --border: #1f2433;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #182744 0, #05070c 55%);
+            color: var(--text);
+        }
+
+        .app-shell {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px 4px;
+        }
+
+        .logo-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 12px rgba(0, 255, 180, 0.35);
+            background: radial-gradient(circle at 30% 20%, #26ffe0 0, #060811 55%);
+        }
+
+        .logo-circle span {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .header-text h1 {
+            font-size: 18px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tagline {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .pill {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(61, 123, 253, 0.4);
+            background: rgba(8, 15, 32, 0.9);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .status-bar {
+            margin: 6px 4px 8px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            background: rgba(3, 10, 25, 0.9);
+            border: 1px solid var(--border);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+            box-shadow: 0 0 10px rgba(77, 255, 153, 0.8);
+            background: radial-gradient(circle, #81ffb7 0, #08c96a 60%);
+        }
+
+        .status-dot.offline {
+            background: radial-gradient(circle, #ff9b9b 0, #ff4040 60%);
+            box-shadow: 0 0 8px rgba(255, 64, 64, 0.8);
+        }
+
+        .status-label {
+            font-weight: 500;
+            margin-right: 4px;
+        }
+
+        .status-url {
+            color: var(--text-muted);
+            opacity: .8;
+        }
+
+        .card {
+            background: rgba(11, 15, 27, 0.96);
+            border-radius: 16px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+            margin-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .field-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin: 6px 2px 2px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 9px 11px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #060a13;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(61, 123, 253, 0.6);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            background: linear-gradient(135deg, #3d7bfd, #47d3ff);
+            color: #fff;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            filter: brightness(.95);
+        }
+
+        .btn-secondary {
+            background: rgba(7, 12, 26, 0.9);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-small {
+            width: auto;
+            padding: 6px 10px;
+            font-size: 11px;
+            border-radius: 999px;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .two-blocks {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .chat-peer {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .chat-peer span {
+            color: var(--accent);
+        }
+
+        .typing-indicator {
+            font-size: 11px;
+            color: var(--text-muted);
+            min-height: 14px;
+        }
+
+        .chat-window {
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: radial-gradient(circle at top left, rgba(61, 123, 253, .08) 0, #05070c 40%);
+            height: 260px;
+            padding: 8px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .msg {
+            padding: 7px 10px;
+            border-radius: 11px;
+            font-size: 13px;
+            max-width: 78%;
+            line-height: 1.4;
+            background: #171f32;
+            animation: fadeUp .18s ease-out forwards;
+            opacity: 0;
+            transform: translateY(4px);
+        }
+
+        .msg.me {
+            margin-left: auto;
+            background: linear-gradient(135deg, #3d7bfd, #40c3ff);
+        }
+
+        .msg-meta {
+            font-size: 9px;
+            color: #b8c2d8;
+            margin-top: 2px;
+        }
+
+        .msg-file {
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .msg-file button {
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 8px;
+            cursor: pointer;
+            align-self: flex-start;
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-input-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+        }
+
+        .chat-send-btn {
+            width: 44px;
+            height: 38px;
+            border-radius: 12px;
+            background: var(--accent);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .chat-send-btn span {
+            font-size: 18px;
+        }
+
+        .footer-hint {
+            margin-top: 6px;
+            text-align: center;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .footer-hint strong {
+            color: #61ffa8;
+        }
+
+        .badge-e2ee {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(140, 255, 195, 0.8);
+            background: rgba(9, 24, 20, 0.9);
+            color: #9dffd0;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #141a28;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            padding: 7px 14px;
+            font-size: 12px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            z-index: 999;
+        }
+
+        .toast.show {
+            display: inline-flex;
+            animation: fadeToast .25s ease-out;
+        }
+
+        .toast-error {
+            border-color: rgba(255, 85, 85, 0.6);
+            color: #ffb3b3;
+        }
+
+        @keyframes fadeToast {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 4px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        .row-inline {
+            display: flex;
+            gap: 6px;
+        }
+
+        .row-inline > * {
+            flex: 1;
+        }
+
+        .small-input {
+            font-size: 13px;
+            padding: 7px 9px;
+        }
+    </style>
 </head>
-
 <body>
 <div class="app-shell">
-  <header class="header">
-    <div class="logo-circle">
-      <span>SS</span>
-    </div>
-    <div class="header-text">
-      <h1>SpySignal <span class="pill">E2EE</span></h1>
-      <div class="tagline">Шифрований чат, файли та дзвінки</div>
-    </div>
-  </header>
-
-  <div class="status-bar">
-    <div id="status-dot" class="status-dot"></div>
-    <div>
-      <span class="status-label" id="status-label">Перевірка сервера…</span>
-      <span class="status-url" id="status-url"></span>
-    </div>
-  </div>
-
-  <!-- LOGIN / REGISTER -->
-  <section class="card" id="login-card">
-    <div class="card-title">
-      <span>1 · Ідентифікація агента</span>
-      <span class="badge-e2ee">E2EE ключі генеруються локально</span>
-    </div>
-    <div class="card-subtitle">
-      Введи свій позивний. Сервер бачить тільки токен, ключі та переписка шифруються в браузері.
-    </div>
-
-    <div class="field-label">Позивний (username)</div>
-    <input id="username" class="input" placeholder="Наприклад, ShadowFox" autocomplete="off">
-
-    <button class="btn" onclick="registerUser()">
-      🔓 Увійти в SpySignal
-    </button>
-
-    <div class="hint" id="my-id-hint" style="display:none;"></div>
-  </section>
-
-  <!-- MAIN BLOCKS -->
-  <section class="two-blocks" id="main-blocks" style="display:none;">
-
-    <!-- SEARCH BLOCK -->
-    <div class="card">
-      <div class="card-title">
-        <span>2 · Пошук контакту</span>
-        <button class="btn-small btn-secondary" onclick="backToLogin()">Змінити агента</button>
-      </div>
-      <div class="card-subtitle">
-        Введи ID або нікнейм агента, з яким хочеш створити зашифрований канал.
-      </div>
-
-      <div class="field-label">Пошук (ID або username)</div>
-      <input id="search" class="input" placeholder="Приклад: 2 або NightOwl" oninput="searchUser()">
-
-      <div class="search-results" id="result"></div>
-    </div>
-
-    <!-- CHAT / FILES / CALLS -->
-    <div class="card" id="chat-card" style="opacity:0.5; pointer-events:none;">
-      <div class="chat-header-row">
-        <div class="chat-peer" id="chat-peer">
-          3 · Чат <span>(обери співрозмовника)</span>
+    <header class="header">
+        <div class="logo-circle">
+            <span>SS</span>
         </div>
-        <div class="typing-indicator" id="typing-indicator"></div>
-      </div>
-
-      <div class="chat-window" id="chat"></div>
-
-      <div class="chat-input-row">
-        <div class="chat-input">
-          <input id="msg" class="input" placeholder="Зашифроване повідомлення…" oninput="onTyping()">
+        <div class="header-text">
+            <h1>SpySignal <span class="pill">E2EE</span></h1>
+            <div class="tagline">Локальне шифрування тексту та файлів</div>
         </div>
-        <button class="chat-send-btn" onclick="sendMessage()">
-          <span>➤</span>
-        </button>
-      </div>
+    </header>
 
-      <div class="file-row">
-        <input type="file" id="file-input">
-        <button class="btn-small btn-secondary" onclick="sendFile()">📎 Надіслати файл (E2EE)</button>
-      </div>
-
-      <div class="call-row">
-        <button class="btn-call" id="btn-call" onclick="toggleCall()">📞 Call</button>
-        <span class="call-status" id="call-status">Очікування…</span>
-      </div>
-
-      <div class="footer-hint">
-        Всі повідомлення, файли та медіа шифруються <strong>на пристроях</strong>, сервер бачить тільки шифротекст.
-      </div>
+    <div class="status-bar">
+        <div id="status-dot" class="status-dot"></div>
+        <div>
+            <span class="status-label" id="status-label">Перевірка сервера…</span>
+            <span class="status-url" id="status-url"></span>
+        </div>
     </div>
 
-  </section>
+    <!-- КАРТКА ЛОГІНУ -->
+    <section class="card" id="login-card">
+        <div class="card-title">
+            <span>1 · Ідентифікація агента</span>
+            <span class="badge-e2ee">Ключі на пристрої</span>
+        </div>
+        <div class="card-subtitle">
+            Введи свій позивний. Твій ID буде згенеровано на сервері і його можна буде дати співрозмовнику.
+        </div>
 
-  <div class="toast" id="toast"></div>
+        <div class="field-label">Позивний (username)</div>
+        <input id="username" class="input" placeholder="Наприклад, ShadowFox" autocomplete="off">
 
-  <!-- Аудіо для дзвінків -->
-  <audio id="local-audio" autoplay muted></audio>
-  <audio id="remote-audio" autoplay></audio>
+        <button class="btn" onclick="registerUser()">🔓 Увійти в SpySignal</button>
+
+        <div class="hint" id="my-id-hint" style="display:none;"></div>
+    </section>
+
+    <!-- КАРТКИ ЧАТУ -->
+    <section class="two-blocks" id="main-blocks" style="display:none;">
+
+        <div class="card">
+            <div class="card-title">
+                <span>2 · Налаштування каналу</span>
+                <button class="btn-small btn-secondary" onclick="logout()">Змінити агента</button>
+            </div>
+            <div class="card-subtitle">
+                Вкажи ID співрозмовника та спільну секретну фразу — вона нікуди не відправляється, використовується тільки для шифрування.
+            </div>
+
+            <div class="field-label">ID співрозмовника</div>
+            <input id="peer-id" class="input small-input" placeholder="Наприклад, 2">
+
+            <div class="field-label">Секретна фраза (E2EE пароль)</div>
+            <input id="secret-pass" class="input small-input" placeholder="Домовтесь про фразу з іншим агентом">
+
+            <button class="btn btn-secondary" onclick="applyChatSettings()">
+                🔐 Застосувати секрет і відкрити чат
+            </button>
+
+            <div class="hint">
+                Обидва агенти мають ввести <strong>однакову секретну фразу</strong> та вказати ID один одного.
+            </div>
+        </div>
+
+        <div class="card" id="chat-card" style="opacity:0.4; pointer-events:none;">
+            <div class="chat-header-row">
+                <div class="chat-peer" id="chat-peer">
+                    3 · Чат (спочатку налаштуй канал)
+                </div>
+                <div class="typing-indicator" id="typing-indicator"></div>
+            </div>
+
+            <div class="chat-window" id="chat"></div>
+
+            <div class="field-label">Надіслати файл (шифрується перед відправкою)</div>
+            <div class="row-inline">
+                <input type="file" id="file-input" class="input small-input">
+                <button class="btn-small btn-secondary" onclick="sendFile()">📎 Файл</button>
+            </div>
+
+            <div class="chat-input-row">
+                <div class="chat-input">
+                    <input id="msg" class="input" placeholder="Зашифроване повідомлення…" oninput="onTyping()">
+                </div>
+                <button class="chat-send-btn" onclick="sendMessage()">
+                    <span>➤</span>
+                </button>
+            </div>
+
+            <div class="footer-hint">
+                Текст і файли шифруються <strong>AES-256-GCM</strong> з ключа, отриманого з секретної фрази. Сервер бачить лише байти.
+            </div>
+        </div>
+    </section>
+
+    <div class="toast" id="toast"></div>
 </div>
 
 <script>
-  // ==== НАЛАШТУВАННЯ API ====
-  const API_ROOT = "https://talented-energy-production.up.railway.app"; // ⬅⬅⬅ ЗАМІНИ НА СВІЙ ДОМЕН
-  const API_BASE = API_ROOT + "/api";
+    // 🔗 URL твого Railway бекенду
+    const API_BASE = "https://talented-energy-production.up.railway.app"; // <-- поміняй при потребі
 
-  // ==== ГЛОБАЛЬНІ СТАНИ ====
-  let token = null;
-  let myID = null;
-  let myUsername = null;
-  let peerID = null;
-  let peerUsername = null;
+    // ---- Глобальні змінні ----
+    let myID = null;
+    let myUsername = null;
+    let peerID = null;
+    let secretPass = null; // секретна фраза
+    let aesKeyCache = null;
+    let lastMessagesCount = 0;
+    let pollingInterval = null;
+    let typingTimeout = null;
+    const sentCipherSet = new Set(); // для розрізнення "моїх" повідомлень
 
-  let lastMessagesCount = 0;
-  let pollingInterval = null;
-  let pollCallsInterval = null;
-  let typingTimeout = null;
+    // для збереження розшифрованих файлів
+    const decryptedFiles = {}; // key: ciphertext, value: {name,mime,b64}
 
-  // E2EE
-  let myPrivateKey = null;
-  let myPublicJwk = null;
-  const LOCAL_KEY_STORAGE = "spysignal_e2ee_keypair_v1";
-  const KEY_ROTATE_MS = 30 * 60 * 1000; // 30 хвилин
-  let lastKeyGenTime = 0;
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
 
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
+    const statusDot = document.getElementById("status-dot");
+    const statusLabel = document.getElementById("status-label");
+    const statusUrl = document.getElementById("status-url");
+    const toastEl = document.getElementById("toast");
 
-  // WebRTC
-  let pc = null;
-  let currentCallPeerId = null;
-  let lastCallEventId = 0;
-  let localStream = null;
+    statusUrl.textContent = API_BASE.replace("https://", "");
 
-  // DOM
-  const statusDot = document.getElementById("status-dot");
-  const statusLabel = document.getElementById("status-label");
-  const statusUrl = document.getElementById("status-url");
-  const toastEl = document.getElementById("toast");
-  const localAudio = document.getElementById("local-audio");
-  const remoteAudio = document.getElementById("remote-audio");
-
-  statusUrl.textContent = API_ROOT.replace(/^https?:\/\//, "");
-
-  function showToast(msg, isError = false) {
-    toastEl.textContent = msg;
-    toastEl.className = "toast show" + (isError ? " toast-error" : "");
-    setTimeout(() => {
-      toastEl.classList.remove("show");
-    }, 2500);
-  }
-
-  function bufToBase64(buf) {
-    let bin = "";
-    const bytes = new Uint8Array(buf);
-    for (let b of bytes) bin += String.fromCharCode(b);
-    return btoa(bin);
-  }
-
-  function base64ToBuf(b64) {
-    const bin = atob(b64);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) {
-      bytes[i] = bin.charCodeAt(i);
-    }
-    return bytes.buffer;
-  }
-
-  async function ensureKeyPair(forceRotate = false) {
-    const now = Date.now();
-    if (!forceRotate && myPrivateKey && myPublicJwk && now - lastKeyGenTime < KEY_ROTATE_MS) {
-      return;
+    function showToast(msg, isError = false) {
+        toastEl.textContent = msg;
+        toastEl.className = "toast show" + (isError ? " toast-error" : "");
+        setTimeout(() => {
+            toastEl.classList.remove("show");
+        }, 2500);
     }
 
-    const raw = localStorage.getItem(LOCAL_KEY_STORAGE);
-    if (!forceRotate && raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        myPublicJwk = parsed.publicJwk;
-        const privJwk = parsed.privateJwk;
-        myPrivateKey = await crypto.subtle.importKey(
-          "jwk",
-          privJwk,
-          { name: "ECDH", namedCurve: "P-256" },
-          false,
-          ["deriveKey", "deriveBits"]
+    // ---- Base64 helpers ----
+    function bufToBase64(buf) {
+        let bin = "";
+        const bytes = new Uint8Array(buf);
+        for (let b of bytes) bin += String.fromCharCode(b);
+        return btoa(bin);
+    }
+
+    function base64ToBuf(b64) {
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) {
+            bytes[i] = bin.charCodeAt(i);
+        }
+        return bytes.buffer;
+    }
+
+    function base64ToBlob(b64, mime) {
+        const buf = base64ToBuf(b64);
+        return new Blob([buf], { type: mime || "application/octet-stream" });
+    }
+
+    // ---- Healthcheck ----
+    async function checkHealth() {
+        try {
+            const res = await fetch(`${API_BASE}/health`);
+            if (!res.ok) throw new Error("bad");
+            const data = await res.json();
+            if (data.status === "ok") {
+                statusDot.classList.remove("offline");
+                statusLabel.textContent = "Підключено до сервера";
+            } else {
+                statusDot.classList.add("offline");
+                statusLabel.textContent = "Сервер відповідає некоректно";
+            }
+        } catch (e) {
+            statusDot.classList.add("offline");
+            statusLabel.textContent = "Немає зв'язку з бекендом";
+        }
+    }
+
+    checkHealth();
+    setInterval(checkHealth, 8000);
+
+    // Telegram WebApp авто-заповнення username
+    (function tryTelegramInit() {
+        try {
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.expand();
+                const u = tg.initDataUnsafe && tg.initDataUnsafe.user;
+                if (u && u.username) {
+                    document.getElementById("username").value = u.username;
+                }
+            }
+        } catch (e) {
+            console.warn("Telegram WebApp недоступний/не використовується", e);
+        }
+    })();
+
+    // ---- Реєстрація ----
+    async function registerUser() {
+        const usernameInput = document.getElementById("username");
+        const username = usernameInput.value.trim();
+        if (!username) {
+            showToast("Введи позивний (username)", true);
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/api/users/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username })
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.id) {
+                console.error("Помилка реєстрації:", data);
+                showToast("Помилка реєстрації", true);
+                return;
+            }
+
+            myID = data.id;
+            myUsername = data.username;
+
+            document.getElementById("login-card").style.display = "none";
+            document.getElementById("main-blocks").style.display = "flex";
+
+            const hint = document.getElementById("my-id-hint");
+            hint.style.display = "block";
+            hint.textContent = `Твій ID агента: ${myID}. Передай його співрозмовнику.`;
+
+            showToast("Успішна реєстрація. Твій ID: " + myID);
+        } catch (e) {
+            console.error(e);
+            showToast("Не вдалося підключитись до сервера", true);
+        }
+    }
+
+    function logout() {
+        myID = null;
+        myUsername = null;
+        peerID = null;
+        secretPass = null;
+        aesKeyCache = null;
+        lastMessagesCount = 0;
+        if (pollingInterval) clearInterval(pollingInterval);
+
+        document.getElementById("peer-id").value = "";
+        document.getElementById("secret-pass").value = "";
+
+        document.getElementById("main-blocks").style.display = "none";
+        document.getElementById("login-card").style.display = "block";
+    }
+
+    // ---- Ключ E2EE (AES) з секретної фрази ----
+    async function getConversationKey() {
+        if (!myID || !peerID || !secretPass) {
+            throw new Error("Немає налаштувань каналу");
+        }
+        if (aesKeyCache) return aesKeyCache;
+
+        const passBytes = encoder.encode(secretPass);
+
+        // стабільна "сіль" на пару ID (щоб у обох збігалось)
+        const idsSorted = [Number(myID), Number(peerID)].sort((a, b) => a - b);
+        const saltString = "spysignal-v1-" + idsSorted.join(":");
+        const saltBytes = encoder.encode(saltString);
+
+        const baseKey = await crypto.subtle.importKey(
+            "raw",
+            passBytes,
+            { name: "PBKDF2" },
+            false,
+            ["deriveKey"]
         );
-        lastKeyGenTime = now;
-        return;
-      } catch (e) {
-        console.warn("Помилка читання локального ключа, генеруємо новий", e);
-      }
+
+        const aesKey = await crypto.subtle.deriveKey(
+            {
+                name: "PBKDF2",
+                salt: saltBytes,
+                iterations: 100000,
+                hash: "SHA-256"
+            },
+            baseKey,
+            { name: "AES-GCM", length: 256 },
+            false,
+            ["encrypt", "decrypt"]
+        );
+
+        aesKeyCache = aesKey;
+        return aesKey;
     }
 
-    const keyPair = await crypto.subtle.generateKey(
-      { name: "ECDH", namedCurve: "P-256" },
-      true,
-      ["deriveKey", "deriveBits"]
-    );
-
-    const pubJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
-    const privJwk = await crypto.subtle.exportKey("jwk", keyPair.privateKey);
-
-    myPrivateKey = keyPair.privateKey;
-    myPublicJwk = pubJwk;
-    lastKeyGenTime = now;
-
-    localStorage.setItem(LOCAL_KEY_STORAGE,
-      JSON.stringify({ publicJwk: pubJwk, privateJwk: privJwk })
-    );
-
-    if (token) {
-      try {
-        await fetch(`${API_BASE}/users/pubkey`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
-          },
-          body: JSON.stringify({ pubkey: JSON.stringify(myPublicJwk) })
-        });
-      } catch (e) {
-        console.warn("Не вдалось оновити публічний ключ на сервері", e);
-      }
+    async function encryptString(plaintext) {
+        const key = await getConversationKey();
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const ctBuffer = await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv },
+            key,
+            encoder.encode(plaintext)
+        );
+        return {
+            iv: bufToBase64(iv.buffer),
+            ciphertext: bufToBase64(ctBuffer)
+        };
     }
-  }
 
-  async function rotateKeyPair() {
-    await ensureKeyPair(true);
-    showToast("Криптоключ оновлено (forward secrecy)");
-  }
-
-  const peerPubKeyCache = {};
-
-  async function fetchPeerPubKey(peerId) {
-    if (peerPubKeyCache[peerId]) return peerPubKeyCache[peerId];
-
-    const res = await fetch(`${API_BASE}/users/pubkey/${peerId}`);
-    if (!res.ok) {
-      throw new Error("У користувача немає E2EE ключа");
+    async function decryptString(ciphertextB64, ivB64) {
+        const key = await getConversationKey();
+        const ivBuf = base64ToBuf(ivB64);
+        const ctBuf = base64ToBuf(ciphertextB64);
+        const plainBuf = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: new Uint8Array(ivBuf) },
+            key,
+            ctBuf
+        );
+        return decoder.decode(plainBuf);
     }
-    const data = await res.json();
-    const jwk = JSON.parse(data.pubkey);
-    peerPubKeyCache[peerId] = jwk;
-    return jwk;
-  }
 
-  async function getAesKeyForPeer(peerPubJwk) {
-    await ensureKeyPair();
-    const peerPubKey = await crypto.subtle.importKey(
-      "jwk",
-      peerPubJwk,
-      { name: "ECDH", namedCurve: "P-256" },
-      false,
-      []
-    );
+    // ---- Налаштування чату ----
+    function applyChatSettings() {
+        const peer = document.getElementById("peer-id").value.trim();
+        const pass = document.getElementById("secret-pass").value.trim();
 
-    const aesKey = await crypto.subtle.deriveKey(
-      { name: "ECDH", public: peerPubKey },
-      myPrivateKey,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["encrypt", "decrypt"]
-    );
-    return aesKey;
-  }
-
-  async function encryptTextForPeer(plaintext, peerPubJwk) {
-    const key = await getAesKeyForPeer(peerPubJwk);
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-
-    const ciphertextBuf = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      key,
-      encoder.encode(plaintext)
-    );
-
-    return {
-      iv: bufToBase64(iv.buffer),
-      ciphertext: bufToBase64(ciphertextBuf),
-    };
-  }
-
-  async function encryptBytesForPeer(bytesArrayBuffer, peerPubJwk) {
-    const key = await getAesKeyForPeer(peerPubJwk);
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-
-    const ciphertextBuf = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      key,
-      bytesArrayBuffer
-    );
-
-    return {
-      iv: bufToBase64(iv.buffer),
-      ciphertext: bufToBase64(ciphertextBuf),
-    };
-  }
-
-  async function decryptFromPeer(ciphertextB64, ivB64, peerPubJwk) {
-    const key = await getAesKeyForPeer(peerPubJwk);
-    const ivBuf = base64ToBuf(ivB64);
-    const ctBuf = base64ToBuf(ciphertextB64);
-
-    const plainBuf = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: new Uint8Array(ivBuf) },
-      key,
-      ctBuf
-    );
-    return decoder.decode(plainBuf);
-  }
-
-  async function decryptBytesFromPeer(ciphertextArrayBuffer, ivB64, peerPubJwk) {
-    const key = await getAesKeyForPeer(peerPubJwk);
-    const ivBuf = base64ToBuf(ivB64);
-
-    const plainBuf = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: new Uint8Array(ivBuf) },
-      key,
-      ciphertextArrayBuffer
-    );
-    return plainBuf;
-  }
-
-  // ==== HEALTH CHECK ====
-  async function checkHealth() {
-    try {
-      const res = await fetch(`${API_ROOT}/health`);
-      if (!res.ok) throw new Error("bad status");
-      const data = await res.json();
-      if (data.status === "ok") {
-        statusDot.classList.remove("offline");
-        statusLabel.textContent = "Підключено до сервера";
-      } else {
-        statusDot.classList.add("offline");
-        statusLabel.textContent = "Сервер відповідає некоректно";
-      }
-    } catch {
-      statusDot.classList.add("offline");
-      statusLabel.textContent = "Немає зв'язку з бекендом";
-    }
-  }
-
-  checkHealth();
-  setInterval(checkHealth, 8000);
-
-  // ==== Telegram WebApp автозаповнення ====
-  (function tryTelegramInit() {
-    try {
-      if (window.Telegram && window.Telegram.WebApp) {
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        const u = tg.initDataUnsafe && tg.initDataUnsafe.user;
-        if (u && u.username) {
-          document.getElementById("username").value = u.username;
+        if (!myID) {
+            showToast("Спочатку залогінься (отримай свій ID)", true);
+            return;
         }
-      }
-    } catch (e) {
-      console.warn("Telegram WebApp недоступний або не використовується", e);
-    }
-  })();
-
-  // ==== AUTH ====
-  async function registerUser() {
-    let username = document.getElementById("username").value.trim();
-    if (!username) {
-      showToast("Введи позивний (username)", true);
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API_BASE}/users/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username })
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.token || !data.id) {
-        console.error("Помилка реєстрації:", data);
-        showToast("Помилка реєстрації", true);
-        return;
-      }
-
-      token = data.token;
-      myID = data.id;
-      myUsername = data.username;
-
-      await ensureKeyPair(true); // одразу згенерувати ключі та залити публічний
-
-      document.getElementById("login-card").style.display = "none";
-      document.getElementById("main-blocks").style.display = "flex";
-
-      const hint = document.getElementById("my-id-hint");
-      hint.style.display = "block";
-      hint.textContent = `Твій ID агента: ${myID}. Передай його співрозмовнику для пошуку.`;
-
-      showToast("Успішно. Твій ID: " + myID);
-
-      if (pollCallsInterval) clearInterval(pollCallsInterval);
-      pollCallsInterval = setInterval(pollCallEvents, 2000);
-    } catch (e) {
-      console.error(e);
-      showToast("Не вдалось підключитись до сервера", true);
-    }
-  }
-
-  function backToLogin() {
-    token = null;
-    myID = null;
-    peerID = null;
-    peerUsername = null;
-
-    document.getElementById("main-blocks").style.display = "none";
-    document.getElementById("login-card").style.display = "block";
-  }
-
-  // ==== SEARCH ====
-  async function searchUser() {
-    const q = document.getElementById("search").value.trim();
-    const resultEl = document.getElementById("result");
-    if (!q) {
-      resultEl.innerHTML = "";
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API_BASE}/users/search?query=${encodeURIComponent(q)}`, {
-        headers: token ? { "Authorization": "Bearer " + token } : {}
-      });
-      const data = await res.json();
-      const users = data.results || [];
-      let html = "";
-
-      if (users.length === 0) {
-        html = `<div class="hint">Нічого не знайдено.</div>`;
-      } else {
-        users.forEach(u => {
-          html += `
-            <div class="user-item" onclick="openChat(${u.id}, '${u.username}')">
-              <div class="user-name">${u.username}</div>
-              <div class="user-id">ID: ${u.id}</div>
-            </div>
-          `;
-        });
-      }
-      resultEl.innerHTML = html;
-    } catch (e) {
-      console.error("Помилка пошуку:", e);
-      showToast("Помилка при пошуку користувачів", true);
-    }
-  }
-
-  // ==== CHAT ====
-  async function openChat(id, username) {
-    peerID = id;
-    peerUsername = username;
-
-    const chatPeerEl = document.getElementById("chat-peer");
-    chatPeerEl.innerHTML = `3 · Чат з <span>${username}</span> (ID: ${id})`;
-
-    const chatCard = document.getElementById("chat-card");
-    chatCard.style.opacity = "1";
-    chatCard.style.pointerEvents = "auto";
-
-    lastMessagesCount = 0;
-    await loadMessages();
-
-    if (pollingInterval) clearInterval(pollingInterval);
-    pollingInterval = setInterval(loadMessages, 2000);
-  }
-
-  async function loadMessages() {
-    if (!peerID || !token) return;
-
-    try {
-      const res = await fetch(`${API_BASE}/messages?peer_id=${peerID}`, {
-        headers: { "Authorization": "Bearer " + token }
-      });
-      const data = await res.json();
-      const msgs = data.messages || [];
-      const chatEl = document.getElementById("chat");
-
-      const peerPubJwk = await fetchPeerPubKey(peerID);
-      const isNew = msgs.length > lastMessagesCount;
-      let html = "";
-
-      for (const m of msgs) {
-        const cls = (m.from_id === myID) ? "msg me" : "msg";
-        let text = "[не вдалося розшифрувати]";
-        let extraHtml = "";
-
-        if (m.msg_type === "file" && m.file_id && m.file_name) {
-          // файл — текст у повідомленні може бути описом, а контент скачувати окремо
-          text = m.text || "Зашифрований файл";
-          extraHtml = `<div class="msg-file-link" onclick="downloadFile(${m.file_id}, '${m.iv}')">📎 ${m.file_name}</div>`;
-        } else {
-          try {
-            text = await decryptFromPeer(m.ciphertext, m.iv, peerPubJwk);
-          } catch (e) {
-            console.warn("Помилка дешифрування", e);
-          }
+        if (!peer || isNaN(Number(peer))) {
+            showToast("Вкажи коректний ID співрозмовника (число)", true);
+            return;
+        }
+        if (!pass) {
+            showToast("Введи секретну фразу для шифрування", true);
+            return;
         }
 
-        const date = new Date(m.created_at);
-        const hh = String(date.getHours()).padStart(2, "0");
-        const mm = String(date.getMinutes()).padStart(2, "0");
+        peerID = Number(peer);
+        secretPass = pass;
+        aesKeyCache = null; // перевирахуємо при потребі
 
-        html += `
-          <div class="${cls}">
-            <div>${text}</div>
-            ${extraHtml}
-            <div class="msg-meta">${hh}:${mm}</div>
-          </div>
-        `;
-      }
+        const chatCard = document.getElementById("chat-card");
+        chatCard.style.opacity = "1";
+        chatCard.style.pointerEvents = "auto";
 
-      chatEl.innerHTML = html;
-      chatEl.scrollTop = chatEl.scrollHeight;
+        const chatPeerEl = document.getElementById("chat-peer");
+        chatPeerEl.innerHTML = `3 · Чат з <span>ID ${peerID}</span>`;
 
-      if (isNew && navigator.vibrate) {
-        navigator.vibrate(40);
-      }
+        lastMessagesCount = 0;
+        if (pollingInterval) clearInterval(pollingInterval);
+        loadMessages();
+        pollingInterval = setInterval(loadMessages, 2500);
 
-      lastMessagesCount = msgs.length;
-    } catch (e) {
-      console.error("Помилка завантаження повідомлень:", e);
-    }
-  }
-
-  function onTyping() {
-    const typingEl = document.getElementById("typing-indicator");
-    typingEl.textContent = "Ти друкуєш…";
-
-    if (typingTimeout) clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-      typingEl.textContent = "";
-    }, 1200);
-  }
-
-  async function sendMessage() {
-    const input = document.getElementById("msg");
-    const msg = input.value.trim();
-    if (!msg || !peerID) return;
-
-    try {
-      const peerPubJwk = await fetchPeerPubKey(peerID);
-      const { iv, ciphertext } = await encryptTextForPeer(msg, peerPubJwk);
-
-      await fetch(`${API_BASE}/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({
-          to: peerID,
-          iv: iv,
-          ciphertext: ciphertext,
-          msg_type: "text"
-        })
-      });
-
-      input.value = "";
-      await loadMessages();
-    } catch (e) {
-      console.error("Помилка надсилання:", e);
-      showToast("Не вдалося надіслати повідомлення (E2EE)", true);
-    }
-  }
-
-  // ==== E2EE FILES ====
-  async function sendFile() {
-    if (!peerID || !token) {
-      showToast("Спочатку вибери співрозмовника", true);
-      return;
+        showToast("Канал налаштовано. Можна писати.");
     }
 
-    const fileInput = document.getElementById("file-input");
-    const file = fileInput.files[0];
-    if (!file) {
-      showToast("Вибери файл для надсилання", true);
-      return;
+    function onTyping() {
+        const typingEl = document.getElementById("typing-indicator");
+        typingEl.textContent = "Ти друкуєш…";
+        if (typingTimeout) clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            typingEl.textContent = "";
+        }, 1200);
     }
 
-    try {
-      const peerPubJwk = await fetchPeerPubKey(peerID);
-
-      const arrayBuffer = await file.arrayBuffer();
-      const { iv, ciphertext } = await encryptBytesForPeer(arrayBuffer, peerPubJwk);
-
-      const formData = new FormData();
-      // шифротекст як Blob + метадані
-      const blob = new Blob([base64ToBuf(ciphertext)]);
-      formData.append("file", blob, file.name + ".enc");
-      formData.append("to", String(peerID));
-      formData.append("iv", iv);
-      formData.append("orig_name", file.name);
-      formData.append("orig_type", file.type || "application/octet-stream");
-
-      const res = await fetch(`${API_BASE}/files/upload`, {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer " + token
-        },
-        body: formData
-      });
-      if (!res.ok) {
-        showToast("Помилка завантаження файлу", true);
-        return;
-      }
-
-      // сервер створює запис повідомлення з msg_type="file"
-      await loadMessages();
-      fileInput.value = "";
-      showToast("Файл відправлено (E2EE)");
-    } catch (e) {
-      console.error("Помилка E2EE файлу:", e);
-      showToast("Не вдалося зашифрувати/відправити файл", true);
-    }
-  }
-
-  async function downloadFile(fileId, iv) {
-    if (!token) return;
-
-    try {
-      const res = await fetch(`${API_BASE}/files/${fileId}`, {
-        headers: { "Authorization": "Bearer " + token }
-      });
-      if (!res.ok) {
-        showToast("Не вдалося завантажити файл", true);
-        return;
-      }
-
-      const arrayBuffer = await res.arrayBuffer();
-      const peerPubJwk = await fetchPeerPubKey(peerID);
-      const plainBuf = await decryptBytesFromPeer(arrayBuffer, iv, peerPubJwk);
-
-      const blob = new Blob([plainBuf]);
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "spysignal_file";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error("Помилка завантаження/дешифрування файлу:", e);
-      showToast("Не вдалося відкрити файл", true);
-    }
-  }
-
-  // ==== WEBRTC CALLS ====
-  async function initLocalMedia() {
-    if (localStream) return;
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-      localAudio.srcObject = localStream;
-    } catch (e) {
-      console.error("Не вдалося отримати мікрофон:", e);
-      showToast("Дозволь доступ до мікрофона", true);
-    }
-  }
-
-  function createPeerConnection() {
-    const configuration = {
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" }
-      ]
-    };
-    pc = new RTCPeerConnection(configuration);
-
-    if (localStream) {
-      for (const track of localStream.getTracks()) {
-        pc.addTrack(track, localStream);
-      }
-    }
-
-    pc.ontrack = (event) => {
-      remoteAudio.srcObject = event.streams[0];
-    };
-
-    pc.onicecandidate = (event) => {
-      if (event.candidate && currentCallPeerId) {
-        sendIceCandidate(currentCallPeerId, event.candidate);
-      }
-    };
-
-    pc.onconnectionstatechange = () => {
-      const st = pc.connectionState;
-      const el = document.getElementById("call-status");
-      el.textContent = "Статус дзвінка: " + st;
-      if (st === "disconnected" || st === "failed" || st === "closed") {
-        endCallLocal();
-      }
-    };
-  }
-
-  async function sendIceCandidate(to, candidate) {
-    try {
-      await fetch(`${API_BASE}/call/candidate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({
-          to,
-          candidate
-        })
-      });
-    } catch (e) {
-      console.error("Помилка надсилання ICE:", e);
-    }
-  }
-
-  async function startCall() {
-    if (!peerID || !token) {
-      showToast("Спочатку вибери співрозмовника", true);
-      return;
-    }
-
-    await initLocalMedia();
-    createPeerConnection();
-    currentCallPeerId = peerID;
-
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    try {
-      await fetch(`${API_BASE}/call/offer`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({
-          to: peerID,
-          sdp: offer.sdp
-        })
-      });
-      document.getElementById("call-status").textContent = "Виклик надіслано…";
-      document.getElementById("btn-call").classList.add("end");
-      document.getElementById("btn-call").textContent = "🛑 End";
-    } catch (e) {
-      console.error("Помилка offer:", e);
-      showToast("Не вдалося ініціювати дзвінок", true);
-    }
-  }
-
-  function endCallLocal() {
-    if (pc) {
-      pc.close();
-      pc = null;
-    }
-    currentCallPeerId = null;
-    document.getElementById("btn-call").classList.remove("end");
-    document.getElementById("btn-call").textContent = "📞 Call";
-    document.getElementById("call-status").textContent = "Дзвінок завершено";
-  }
-
-  function toggleCall() {
-    if (pc && currentCallPeerId) {
-      endCallLocal();
-    } else {
-      startCall();
-    }
-  }
-
-  async function handleIncomingOffer(from_id, sdp) {
-    await initLocalMedia();
-    createPeerConnection();
-    currentCallPeerId = from_id;
-
-    await pc.setRemoteDescription({ type: "offer", sdp });
-
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-
-    try {
-      await fetch(`${API_BASE}/call/answer`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({
-          to: from_id,
-          sdp: answer.sdp
-        })
-      });
-      document.getElementById("call-status").textContent = "Вхідний дзвінок — підключення…";
-      document.getElementById("btn-call").classList.add("end");
-      document.getElementById("btn-call").textContent = "🛑 End";
-    } catch (e) {
-      console.error("Помилка answer:", e);
-      showToast("Не вдалося відповісти на дзвінок", true);
-    }
-  }
-
-  async function handleIncomingAnswer(from_id, sdp) {
-    if (!pc) return;
-    await pc.setRemoteDescription({ type: "answer", sdp });
-    document.getElementById("call-status").textContent = "Дзвінок встановлено";
-  }
-
-  async function handleIncomingCandidate(from_id, candidate) {
-    if (!pc) return;
-    try {
-      await pc.addIceCandidate(new RTCIceCandidate(candidate));
-    } catch (e) {
-      console.error("Помилка додавання ICE", e);
-    }
-  }
-
-  async function pollCallEvents() {
-    if (!token || !myID) return;
-    try {
-      const url = `${API_BASE}/call/poll?user_id=${myID}&since_id=${lastCallEventId}`;
-      const res = await fetch(url, {
-        headers: { "Authorization": "Bearer " + token }
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      const events = data.events || [];
-      for (const ev of events) {
-        lastCallEventId = Math.max(lastCallEventId, ev.id || 0);
-        if (ev.type === "offer") {
-          await handleIncomingOffer(ev.from_id, ev.sdp);
-        } else if (ev.type === "answer") {
-          await handleIncomingAnswer(ev.from_id, ev.sdp);
-        } else if (ev.type === "candidate") {
-          await handleIncomingCandidate(ev.from_id, ev.candidate);
+    // ---- Відправка TEXT ----
+    async function sendMessage() {
+        const input = document.getElementById("msg");
+        const text = input.value.trim();
+        if (!text) return;
+        if (!peerID || !secretPass) {
+            showToast("Налаштуй канал (ID + секретна фраза)", true);
+            return;
         }
-      }
-    } catch (e) {
-      console.error("pollCallEvents error:", e);
-    }
-  }
 
+        try {
+            const payload = "TXT:" + text;
+            const { iv, ciphertext } = await encryptString(payload);
+
+            sentCipherSet.add(ciphertext);
+
+            await fetch(`${API_BASE}/api/messages`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    to: peerID,
+                    iv: iv,
+                    ciphertext: ciphertext
+                })
+            });
+
+            input.value = "";
+            await loadMessages();
+        } catch (e) {
+            console.error("Помилка надсилання:", e);
+            showToast("Не вдалося надіслати повідомлення", true);
+        }
+    }
+
+    // ---- Відправка FILE ----
+    async function sendFile() {
+        const fileInput = document.getElementById("file-input");
+        const file = fileInput.files[0];
+        if (!file) {
+            showToast("Оберіть файл", true);
+            return;
+        }
+        if (!peerID || !secretPass) {
+            showToast("Налаштуй канал (ID + секретна фраза)", true);
+            return;
+        }
+
+        try {
+            const arrayBuf = await file.arrayBuffer();
+            const b64 = bufToBase64(arrayBuf);
+
+            const fileInfo = {
+                name: file.name,
+                size: file.size,
+                mime: file.type || "application/octet-stream",
+                b64: b64
+            };
+
+            const plaintext = "FILE:" + JSON.stringify(fileInfo);
+            const { iv, ciphertext } = await encryptString(plaintext);
+
+            sentCipherSet.add(ciphertext);
+
+            await fetch(`${API_BASE}/api/messages`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    to: peerID,
+                    iv: iv,
+                    ciphertext: ciphertext
+                })
+            });
+
+            fileInput.value = "";
+            showToast("Файл відправлено (зашифрований)");
+            await loadMessages();
+        } catch (e) {
+            console.error("Помилка надсилання файлу:", e);
+            showToast("Не вдалося надіслати файл", true);
+        }
+    }
+
+    // ---- Завантаження повідомлень ----
+    async function loadMessages() {
+        if (!myID || !peerID || !secretPass) return;
+
+        try {
+            // бекенд вимагає peer_id в query, навіть якщо не використовує
+            const res = await fetch(`${API_BASE}/api/messages?peer_id=${peerID}`);
+            const data = await res.json();
+            const msgs = data.messages || [];
+            const chatEl = document.getElementById("chat");
+
+            const isNew = msgs.length > lastMessagesCount;
+
+            decryptedFiles.clear;
+            const arr = [];
+
+            for (const m of msgs) {
+                let decrypted = null;
+                try {
+                    decrypted = await decryptString(m.ciphertext, m.iv);
+                } catch (e) {
+                    decrypted = "[Не вдалося розшифрувати]";
+                }
+
+                let isMine = sentCipherSet.has(m.ciphertext);
+
+                // час
+                let timeStr = "";
+                try {
+                    const d = new Date(m.created_at);
+                    const hh = String(d.getHours()).padStart(2, "0");
+                    const mm = String(d.getMinutes()).padStart(2, "0");
+                    timeStr = `${hh}:${mm}`;
+                } catch {
+                    timeStr = "";
+                }
+
+                // форматування
+                if (decrypted.startsWith("FILE:")) {
+                    let info = null;
+                    try {
+                        info = JSON.parse(decrypted.slice(5));
+                    } catch {
+                        info = null;
+                    }
+
+                    if (info) {
+                        decryptedFiles[m.ciphertext] = info;
+                        arr.push({
+                            type: "file",
+                            me: isMine,
+                            time: timeStr,
+                            cipher: m.ciphertext,
+                            info
+                        });
+                    } else {
+                        arr.push({
+                            type: "text",
+                            me: isMine,
+                            time: timeStr,
+                            text: "[Пошкоджені дані файлу]"
+                        });
+                    }
+                } else if (decrypted.startsWith("TXT:")) {
+                    const txt = decrypted.slice(4);
+                    arr.push({
+                        type: "text",
+                        me: isMine,
+                        time: timeStr,
+                        text: txt
+                    });
+                } else {
+                    arr.push({
+                        type: "text",
+                        me: isMine,
+                        time: timeStr,
+                        text: decrypted
+                    });
+                }
+            }
+
+            let html = "";
+            for (const m of arr) {
+                const cls = m.me ? "msg me" : "msg";
+                if (m.type === "text") {
+                    html += `
+                        <div class="${cls}">
+                            <div>${escapeHtml(m.text)}</div>
+                            <div class="msg-meta">${m.time}</div>
+                        </div>
+                    `;
+                } else if (m.type === "file") {
+                    const sizeKB = Math.round(m.info.size / 1024);
+                    html += `
+                        <div class="${cls}">
+                            <div class="msg-file">
+                                <div>📎 Файл: <strong>${escapeHtml(m.info.name)}</strong></div>
+                                <div class="msg-meta">${sizeKB} КБ • ${escapeHtml(m.info.mime || "file")}</div>
+                                <button onclick="downloadEncryptedFile('${m.cipher}')">Завантажити</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            chatEl.innerHTML = html;
+            chatEl.scrollTop = chatEl.scrollHeight;
+
+            if (isNew && navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+
+            lastMessagesCount = msgs.length;
+        } catch (e) {
+            console.error("Помилка завантаження повідомлень:", e);
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+    // ---- Завантаження файлу ----
+    window.downloadEncryptedFile = function (cipher) {
+        const info = decryptedFiles[cipher];
+        if (!info) {
+            showToast("Не знайдено дані файлу", true);
+            return;
+        }
+        try {
+            const blob = base64ToBlob(info.b64, info.mime);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = info.name || "file";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error(e);
+            showToast("Не вдалося зберегти файл", true);
+        }
+    };
 </script>
 </body>
 </html>
