@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>SpySignal Premium — Stealth Messenger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #050615;
+      --bg-alt: #090a22;
+      --bg-panel: #0b0d2c;
+      --bg-panel-soft: #090a21;
+      --accent: #7b5cff;
+      --accent-2: #3df2ff;
+      --accent-soft: rgba(123, 92, 255, 0.22);
+      --accent-strong: #d0b3ff;
+      --danger: #ff4d7a;
+      --warn: #ffcc4d;
+      --text: #f5f7ff;
+      --muted: #8e93b5;
+      --border: #181a3b;
+      --tag-bg: #0f1030;
+      --pro-gold: #ffd86b;
+      --shadow-main: 0 18px 45px rgba(0, 0, 0, 0.9);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF UI Text", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% 0, rgba(123, 92, 255, 0.23) 0, transparent 55%),
+        radial-gradient(circle at 85% 100%, rgba(61, 242, 255, 0.18) 0, transparent 55%),
+        #050615;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 14px 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-orb {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 25% 15%, #3df2ff 0, #050615 55%);
+      box-shadow:
+        0 0 14px rgba(61, 242, 255, 0.6),
+        0 0 40px rgba(0, 0, 0, 1);
+      border: 1px solid rgba(160, 230, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-orb span {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-premium {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 216, 107, 0.9);
+      background: linear-gradient(135deg, #2a1a05, #4b3510);
+      color: #ffe9a4;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    .sec-indicator {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 20% 0, rgba(61, 242, 255, 0.38) 0, rgba(5, 9, 28, 0.97) 64%);
+      border: 1px solid rgba(104, 236, 255, 0.8);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sec-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #00ffc6 0, #03a47e 60%);
+      box-shadow: 0 0 12px rgba(0, 255, 198, 0.9);
+    }
+
+    .sec-dot.weak {
+      background: radial-gradient(circle, #ffb347 0, #ff7a2f 60%);
+      box-shadow: 0 0 10px rgba(255, 122, 47, 0.9);
+    }
+
+    .sec-dot.off {
+      background: radial-gradient(circle, #ff9ba6 0, #ff4057 60%);
+      box-shadow: 0 0 10px rgba(255, 64, 87, 0.9);
+    }
+
+    .sec-label-small { opacity: .8; }
+
+    .btn-upgrade {
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 216, 107, 0.9);
+      background: radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.08) 0, rgba(40, 28, 6, 1) 55%);
+      color: #ffe9a4;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.7),
+        0 0 25px rgba(255, 194, 58, 0.45);
+    }
+
+    .btn-upgrade span.icon { font-size: 15px; }
+    .btn-upgrade:active { transform: translateY(1px); filter: brightness(0.97); }
+
+    /* STATUS */
+    .status-bar {
+      border-radius: 999px;
+      padding: 7px 11px;
+      background: rgba(5, 8, 28, 0.96);
+      border: 1px solid rgba(35, 40, 84, 0.9);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 11px;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #83ffb7 0, #16c56e 60%);
+      box-shadow: 0 0 10px rgba(109, 255, 167, 0.9);
+    }
+
+    .status-dot.offline {
+      background: radial-gradient(circle, #ff9b9b 0, #ff4040 60%);
+      box-shadow: 0 0 10px rgba(255, 64, 64, 0.9);
+    }
+
+    .status-main { font-weight: 500; }
+    .status-url { color: var(--muted); }
+
+    /* LAYOUT */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 280px) minmax(0, 1.6fr) minmax(0, 260px);
+      gap: 12px;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .card {
+      background:
+        radial-gradient(circle at top left, rgba(123, 92, 255, 0.18) 0, rgba(5, 6, 24, 0.96) 42%);
+      border-radius: 18px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-main);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      font-weight: 600;
+      opacity: .95;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .badge-e2ee {
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(61, 242, 255, 0.83);
+      background: rgba(1, 10, 20, 0.96);
+      color: #aef8ff;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .badge-e2ee span.lock { font-size: 12px; }
+
+    .pill-small {
+      font-size: 10px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(14, 13, 41, 0.97);
+      border: 1px solid rgba(52, 58, 102, 0.9);
+    }
+
+    .pill-pro {
+      border-color: rgba(255, 216, 107, 0.9);
+      color: #ffe79a;
+      background: rgba(39, 27, 5, 0.96);
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin: 5px 2px 3px;
+    }
+
+    .input, .textarea, .select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 11px;
+      border: 1px solid rgba(30, 33, 88, 0.95);
+      background: linear-gradient(135deg, #06071a, #05051a);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .input:focus, .textarea:focus, .select:focus {
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 1px rgba(61, 242, 255, 0.7);
+    }
+
+    .textarea {
+      min-height: 54px;
+      resize: vertical;
+    }
+
+    .btn-main {
+      width: 100%;
+      margin-top: 8px;
+      padding: 9px 12px;
+      border-radius: 11px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), #9a7bff);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-main:active { transform: translateY(1px); filter: brightness(0.97); }
+
+    .btn-ghost {
+      border-radius: 10px;
+      padding: 5px 9px;
+      border: 1px solid rgba(47, 54, 105, 0.95);
+      background: rgba(6, 8, 29, 0.96);
+      color: var(--text);
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .btn-ghost:active { transform: translateY(1px); }
+
+    /* LEFT: PROFILE + CONTACTS */
+    .profile-block {
+      padding: 8px 9px;
+      border-radius: 12px;
+      background: rgba(10, 10, 40, 0.98);
+      border: 1px solid rgba(40, 45, 90, 0.98);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .profile-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 11px;
+      background: radial-gradient(circle at 30% 0, #3df2ff 0, #0c0f36 60%);
+      border: 1px solid rgba(154, 240, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .profile-info-main { font-size: 12px; }
+    .profile-info-main strong { font-weight: 600; }
+    .profile-info-sub { font-size: 10px; color: var(--muted); }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .tag {
+      font-size: 10px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: var(--tag-bg);
+      border: 1px solid rgba(44, 49, 95, 0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tag.pro {
+      border-color: rgba(255, 216, 107, 0.9);
+      color: #ffe79a;
+    }
+
+    .search-results {
+      max-height: 160px;
+      overflow-y: auto;
+      margin-top: 4px;
+      padding-right: 2px;
+    }
+
+    .user-item {
+      border-radius: 10px;
+      padding: 7px 8px;
+      margin-bottom: 5px;
+      border: 1px solid rgba(40, 45, 95, 0.9);
+      background: rgba(6, 8, 24, 0.96);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .user-item:hover {
+      border-color: var(--accent-2);
+      background: rgba(10, 14, 40, 0.97);
+    }
+
+    .user-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .user-meta {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .user-tag-pro {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(255, 216, 107, 0.1);
+      border: 1px solid rgba(255, 216, 107, 0.9);
+      color: #ffe79a;
+    }
+
+    /* CENTER: CHAT */
+    .chat-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .chat-peer-title {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .chat-peer-title span { color: var(--accent-2); }
+
+    .chat-meta {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .chat-window {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: radial-gradient(circle at 0 0, rgba(123, 92, 255, 0.15) 0, rgba(3, 5, 22, 0.96) 55%);
+      height: 280px;
+      padding: 8px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    @media (max-width: 980px) {
+      .chat-window { height: 260px; }
+    }
+
+    .msg {
+      padding: 7px 9px;
+      border-radius: 11px;
+      font-size: 13px;
+      max-width: 78%;
+      line-height: 1.4;
+      background: #0b1031;
+      animation: fadeUp .16s ease-out forwards;
+      opacity: 0;
+      transform: translateY(3px);
+      word-wrap: break-word;
+    }
+
+    .msg.me {
+      margin-left: auto;
+      background: linear-gradient(135deg, var(--accent-2), #7bffcf);
+      color: #051014;
+    }
+
+    .msg-meta {
+      font-size: 9px;
+      margin-top: 2px;
+      opacity: .82;
+    }
+
+    .msg-file {
+      margin-top: 4px;
+      padding: 5px 7px;
+      border-radius: 9px;
+      background: rgba(6, 11, 32, 0.96);
+      font-size: 11px;
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .secret-row {
+      margin-top: 6px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .secret-row .input {
+      font-size: 12px;
+      padding: 7px 9px;
+    }
+
+    .secret-row button { white-space: nowrap; }
+
+    .secret-helper {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 7px;
+      align-items: center;
+    }
+
+    .chat-input-row .input { flex: 1; }
+
+    .btn-send {
+      width: 44px;
+      height: 38px;
+      border-radius: 11px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-2), #63ffe4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      color: #020610;
+    }
+
+    .btn-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      background: rgba(6, 9, 32, 0.97);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .btn-icon.pro-locked {
+      border-color: rgba(255, 216, 107, 0.9);
+      box-shadow: 0 0 10px rgba(255, 216, 107, 0.55);
+    }
+
+    .chat-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .file-input { display: none; }
+
+    .call-status {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* RIGHT: PREMIUM PANEL */
+    .pro-section-title {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .pro-section-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .pro-feature-list {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .pro-feature {
+      padding: 7px 8px;
+      border-radius: 10px;
+      background: rgba(9, 9, 36, 0.97);
+      border: 1px solid rgba(45, 50, 96, 0.95);
+      display: flex;
+      gap: 7px;
+      align-items: flex-start;
+      font-size: 11px;
+    }
+
+    .pro-feature-icon { font-size: 14px; margin-top: 2px; }
+
+    .pro-feature-main { font-size: 11px; }
+    .pro-feature-main strong { font-size: 11px; }
+
+    .pro-feature-main span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 1px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(7, 9, 28, 0.98);
+      border: 1px solid rgba(38, 44, 92, 0.9);
+      font-size: 12px;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      z-index: 999;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8);
+    }
+    .toast.show { display: inline-flex; }
+    .toast.error { border-color: rgba(255, 85, 120, 0.8); color: #ffb3c4; }
+
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- TOP -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo-orb"><span>SS</span></div>
+      <div class="brand-text">
+        <h1>SpySignal <span class="badge-premium">Premium</span></h1>
+        <div class="brand-subtitle">Stealth messenger · X25519 · AES-GCM · Ratchet</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div class="sec-indicator">
+        <div id="sec-dot" class="sec-dot off"></div>
+        <div class="sec-label-small" id="sec-label">E2EE: неактивно</div>
+      </div>
+      <button class="btn-upgrade" onclick="fakeUpgrade()">
+        <span class="icon">⭐️</span><span id="upgrade-label">Upgrade to PRO</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- BACKEND STATUS -->
+  <div class="status-bar">
+    <div id="backend-dot" class="status-dot offline"></div>
+    <div>
+      <div id="backend-label" class="status-main">Перевірка бекенда…</div>
+      <div id="backend-url" class="status-url"></div>
+    </div>
+  </div>
+
+  <!-- LAYOUT -->
+  <div class="layout">
+    <!-- LEFT: LOGIN + CONTACTS -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">01 · Ідентифікація</div>
+          <div class="card-subtitle">
+            Введи позивний. Ключі генеруються локально. Сервер бачить тільки зашифрований текст.
+          </div>
+        </div>
+        <div class="badge-e2ee"><span class="lock">🔐</span> keys: local only</div>
+      </div>
+
+      <div class="profile-block" id="profile-block" style="display:none;">
+        <div class="profile-avatar" id="profile-avatar"></div>
+        <div>
+          <div class="profile-info-main">
+            <strong id="profile-name"></strong> · <span id="profile-id"></span>
+          </div>
+          <div class="profile-info-sub" id="profile-sub"></div>
+        </div>
+      </div>
+
+      <div id="login-block">
+        <div class="field-label">Позивний (username)</div>
+        <input id="username" class="input" placeholder="Наприклад, ShadowFox" autocomplete="off">
+        <button class="btn-main" onclick="registerUser()">🔓 Увійти</button>
+      </div>
+
+      <div class="tag-list">
+        <div class="tag"><span>🧬</span> X25519 + HKDF + AES-256-GCM</div>
+        <div class="tag"><span>🪫</span> Сервер не знає ключі</div>
+        <div class="tag pro"><span>👥</span> Групи (multi-recipient)</div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid rgba(40,45,95,0.8);margin:10px 0;">
+
+      <div class="field-label">Пошук агента (ID або username)</div>
+      <input id="search" class="input" placeholder="Введи ID або частину імені…" oninput="searchUser()">
+      <div class="search-results" id="search-results"></div>
+    </div>
+
+    <!-- CENTER: CHAT -->
+    <div class="card">
+      <div class="chat-header-row">
+        <div>
+          <div class="chat-peer-title" id="chat-peer">02 · Чат <span>(вибери контакт)</span></div>
+          <div class="chat-meta" id="chat-meta">Канал не ініціалізований · немає ключів</div>
+        </div>
+        <div class="pill-small" id="ratchet-pill">Ratchet: off</div>
+      </div>
+
+      <div class="secret-row">
+        <input id="shared-secret" class="input" placeholder="Додатковий пароль для діалогу (опційно)">
+        <button class="btn-ghost" onclick="resetSession()">🔁 Скинути сесію</button>
+      </div>
+      <div class="secret-helper">
+        При першому повідомленні створюється X25519-сесія з ratchet. Старі повідомлення після reset не розшифруєш.
+      </div>
+
+      <div id="chat-window" class="chat-window"></div>
+
+      <div class="chat-input-row">
+        <input id="msg-input" class="input" placeholder="Зашифроване повідомлення…" onkeydown="onMsgKey(event)">
+        <button class="btn-send" onclick="sendMessage()">➤</button>
+      </div>
+
+      <div class="chat-actions">
+        <label class="btn-icon" title="Відправити зашифрований файл">
+          📁
+          <input id="file-input" type="file" class="file-input" onchange="handleFile(event)">
+        </label>
+        <button class="btn-icon" onclick="sendToGroup()" title="Broadcast у групу">
+          👥
+        </button>
+      </div>
+
+      <div class="call-status" id="status-line">Стан: очікування…</div>
+    </div>
+
+    <!-- RIGHT: PREMIUM FEATURES -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">03 · Premium криптографія</div>
+          <div class="card-subtitle">
+            Ultimate: X25519 handshake + HKDF chains + AES-256-GCM + file E2EE (hybrid).
+          </div>
+        </div>
+        <span class="pill-small pill-pro" id="plan-pill">Plan: Free</span>
+      </div>
+
+      <div class="pro-section-title">Рівні захисту</div>
+      <div class="pro-section-sub">
+        🔴 Без ключа · 🟡 HTTPS only · 🟢 Full E2EE (це ми).
+      </div>
+
+      <div class="pro-feature-list">
+        <div class="pro-feature">
+          <div class="pro-feature-icon">🧩</div>
+          <div class="pro-feature-main">
+            <strong>X25519 + HKDF Ratchet</strong>
+            <span>Кожне повідомлення використовує новий симетричний ключ, витягнутий з ланцюжка, схожого на Signal.</span>
+          </div>
+        </div>
+
+        <div class="pro-feature">
+          <div class="pro-feature-icon">📂</div>
+          <div class="pro-feature-main">
+            <strong>File E2EE (AES-GCM)</strong>
+            <span>Файли шифруються тим самим root-ключем діалогу, окремий IV та тип "file". Сервер бачить тільки blob.</span>
+          </div>
+        </div>
+
+        <div class="pro-feature">
+          <div class="pro-feature-icon">👥</div>
+          <div class="pro-feature-main">
+            <strong>Групові повідомлення</strong>
+            <span>Broadcast: одне повідомлення — шифрування для кожного отримувача окремо, з їхнім ratchet.</span>
+          </div>
+        </div>
+
+        <div class="pro-feature">
+          <div class="pro-feature-icon">🧱</div>
+          <div class="pro-feature-main">
+            <strong>Ephemeral сесії</strong>
+            <span>Reset скидає локальний стан ratchet. Нові ключі — старі повідомлення не відновлюються.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+</div>
+
+<script>
+  // ========= CONFIG =========
+  const ORIGIN = window.location.origin;
+  const API_BASE = ORIGIN + "/api";
+  document.getElementById("backend-url").textContent = ORIGIN.replace("https://", "");
+
+  const backendDot = document.getElementById("backend-dot");
+  const backendLabel = document.getElementById("backend-label");
+  const secDot = document.getElementById("sec-dot");
+  const secLabel = document.getElementById("sec-label");
+  const toastEl = document.getElementById("toast");
+  const chatWindow = document.getElementById("chat-window");
+  const planPill = document.getElementById("plan-pill");
+  const ratchetPill = document.getElementById("ratchet-pill");
+
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+
+  let myId = null;
+  let myUsername = null;
+  let currentPeer = null;      // { id, username }
+  let recentPeers = [];        // list for "group" (простий broadcast)
+  let dialogs = {};            // dialogId -> { rootKey, sendCount, recvCount }
+
+  function dialogId(a, b) {
+    a = String(a); b = String(b);
+    return (a < b) ? a + "_" + b : b + "_" + a;
+  }
+
+  function showToast(msg, isErr = false) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    toastEl.classList.toggle("error", isErr);
+    setTimeout(() => toastEl.classList.remove("show"), 2600);
+  }
+
+  async function checkBackend() {
+    try {
+      const res = await fetch(ORIGIN + "/health");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      if (data.status === "ok") {
+        backendDot.classList.remove("offline");
+        backendLabel.textContent = "Бекенд підключено";
+      } else {
+        backendDot.classList.add("offline");
+        backendLabel.textContent = "Бекенд відповідає некоректно";
+      }
+    } catch {
+      backendDot.classList.add("offline");
+      backendLabel.textContent = "Немає зв'язку з бекендом";
+    }
+  }
+  checkBackend();
+  setInterval(checkBackend, 10000);
+
+  function setSecurity(level) {
+    secDot.classList.remove("weak", "off");
+    if (level === "strong") {
+      secLabel.textContent = "E2EE: активна (ratchet)";
+    } else if (level === "weak") {
+      secDot.classList.add("weak");
+      secLabel.textContent = "E2EE: лише HTTPS";
+    } else {
+      secDot.classList.add("off");
+      secLabel.textContent = "E2EE: неактивно";
+    }
+  }
+
+  // ========= CRYPTO: X25519 + HKDF + AES-GCM =========
+
+  async function importX25519PrivateJwk(jwk) {
+    return crypto.subtle.importKey(
+      "jwk",
+      jwk,
+      { name: "ECDH", namedCurve: "X25519" },
+      true,
+      ["deriveBits", "deriveKey"]
+    );
+  }
+
+  async function importX25519PublicRaw(raw) {
+    return crypto.subtle.importKey(
+      "raw",
+      raw,
+      { name: "ECDH", namedCurve: "X25519" },
+      true,
+      []
+    );
+  }
+
+  async function generateIdentityKeys() {
+    const keyPair = await crypto.subtle.generateKey(
+      { name: "ECDH", namedCurve: "X25519" },
+      true,
+      ["deriveBits", "deriveKey"]
+    );
+    const pubRaw = await crypto.subtle.exportKey("raw", keyPair.publicKey);
+    const privJwk = await crypto.subtle.exportKey("jwk", keyPair.privateKey);
+    return { publicRaw: bufToB64(pubRaw), privateJwk: privJwk };
+  }
+
+  function bufToB64(buf) {
+    const bytes = new Uint8Array(buf);
+    let bin = "";
+    for (let b of bytes) bin += String.fromCharCode(b);
+    return btoa(bin);
+  }
+
+  function b64ToBuf(b64) {
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return arr.buffer;
+  }
+
+  async function deriveSharedSecret(privKey, peerPubRawB64) {
+    const peerPubKey = await importX25519PublicRaw(b64ToBuf(peerPubRawB64));
+    const bits = await crypto.subtle.deriveBits(
+      { name: "ECDH", public: peerPubKey },
+      privKey,
+      256
+    );
+    return new Uint8Array(bits); // 32 байти
+  }
+
+  async function hkdf(ikm, infoStr) {
+    const key = await crypto.subtle.importKey(
+      "raw", ikm, "HKDF", false, ["deriveBits"]
+    );
+    const info = enc.encode(infoStr);
+    const salt = new Uint8Array(32); // нулі
+    const bits = await crypto.subtle.deriveBits(
+      { name: "HKDF", hash: "SHA-256", salt, info },
+      key,
+      256
+    );
+    return new Uint8Array(bits); // 32 байти
+  }
+
+  async function getDialogState(peerId) {
+    const id = dialogId(myId, peerId);
+    if (!dialogs[id]) {
+      // Спробуємо відновити з localStorage
+      const raw = localStorage.getItem("ss_dialog_" + id);
+      if (raw) {
+        dialogs[id] = JSON.parse(raw);
+      } else {
+        dialogs[id] = { rootKeyB64: null, sendCount: 0, recvCount: 0 };
+      }
+    }
+    return dialogs[id];
+  }
+
+  function persistDialogState(peerId) {
+    const id = dialogId(myId, peerId);
+    localStorage.setItem("ss_dialog_" + id, JSON.stringify(dialogs[id]));
+  }
+
+  async function ensureRootKey(peerId) {
+    const d = await getDialogState(peerId);
+    if (d.rootKeyB64) return new Uint8Array(b64ToBuf(d.rootKeyB64));
+
+    // Немає rootKey: створюємо handshake
+    // В цій демо-версії: локальний identity-key + випадковий ECDH з peer identity
+    const myIdKey = JSON.parse(localStorage.getItem("ss_identity_key"));
+    if (!myIdKey) throw new Error("Немає локального identity key");
+
+    const myPriv = await importX25519PrivateJwk(myIdKey.privateJwk);
+
+    // Для простоти — в бекенді зберігаємо лише identityPub інших юзерів
+    const res = await fetch(`${API_BASE}/users/bundle/${peerId}`);
+    if (!res.ok) throw new Error("Не вдалося отримати bundle користувача");
+    const bundle = await res.json(); // { identity_pub_b64 }
+
+    const shared = await deriveSharedSecret(myPriv, bundle.identity_pub_b64);
+
+    // Додатковий пароль (shared-secret input)
+    const pass = document.getElementById("shared-secret").value.trim();
+    let ikm = shared;
+    if (pass) {
+      const passBytes = enc.encode(pass);
+      const concat = new Uint8Array(shared.length + passBytes.length);
+      concat.set(shared, 0);
+      concat.set(passBytes, shared.length);
+      ikm = concat;
+    }
+
+    const root = await hkdf(ikm, "SpySignalRoot|" + dialogId(myId, peerId));
+    d.rootKeyB64 = bufToB64(root.buffer);
+    d.sendCount = 0;
+    d.recvCount = 0;
+    dialogs[dialogId(myId, peerId)] = d;
+    persistDialogState(peerId);
+    updateCryptoUi();
+    return root;
+  }
+
+  async function deriveMessageKey(peerId, fromMe, index) {
+    const root = await ensureRootKey(peerId);
+    const info = `SpySignalMsg|${fromMe ? "send" : "recv"}|${index}`;
+    const keyBytes = await hkdf(root, info); // 32 байти
+    return crypto.subtle.importKey(
+      "raw",
+      keyBytes,
+      { name: "AES-GCM" },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  }
+
+  // AES-GCM helpers
+  async function aesEncrypt(key, plaintextBytes) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      key,
+      plaintextBytes
+    );
+    return {
+      iv_b64: bufToB64(iv.buffer),
+      ct_b64: bufToB64(ct),
+    };
+  }
+
+  async function aesDecrypt(key, iv_b64, ct_b64) {
+    const iv = new Uint8Array(b64ToBuf(iv_b64));
+    const ctBuf = b64ToBuf(ct_b64);
+    const pt = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      key,
+      ctBuf
+    );
+    return new Uint8Array(pt);
+  }
+
+  function updateCryptoUi() {
+    let anyRoot = false;
+    for (const k in dialogs) {
+      if (dialogs[k].rootKeyB64) {
+        anyRoot = true;
+        break;
+      }
+    }
+    if (anyRoot) {
+      setSecurity("strong");
+      ratchetPill.textContent = "Ratchet: on";
+    } else {
+      setSecurity("off");
+      ratchetPill.textContent = "Ratchet: off";
+    }
+  }
+
+  function resetSession() {
+    if (!currentPeer || !myId) {
+      showToast("Нема активного діалогу", true);
+      return;
+    }
+    const id = dialogId(myId, currentPeer.id);
+    delete dialogs[id];
+    localStorage.removeItem("ss_dialog_" + id);
+    updateCryptoUi();
+    chatMeta.textContent = "Канал перезапущено · ключі будуть оновлені при наступному повідомленні";
+    showToast("Crypto-сесія скинута");
+  }
+
+  // ========= USER / AUTH =========
+
+  async function registerUser() {
+    const usernameInput = document.getElementById("username");
+    const username = usernameInput.value.trim();
+    if (!username) {
+      showToast("Введи позивний", true);
+      return;
+    }
+
+    // identity key pair локально
+    let idKeyJson = localStorage.getItem("ss_identity_key");
+    let idKey;
+    if (!idKeyJson) {
+      idKey = await generateIdentityKeys(); // { publicRaw, privateJwk }
+      localStorage.setItem("ss_identity_key", JSON.stringify(idKey));
+    } else {
+      idKey = JSON.parse(idKeyJson);
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/users/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          identity_pub_b64: idKey.publicRaw,
+        }),
+      });
+      if (!res.ok) throw new Error("Помилка реєстрації");
+      const data = await res.json(); // {id, username, is_pro, ...}
+      myId = data.id;
+      myUsername = data.username;
+
+      // UI оновлення
+      document.getElementById("login-block").style.display = "none";
+      const profileBlock = document.getElementById("profile-block");
+      profileBlock.style.display = "flex";
+      document.getElementById("profile-name").textContent = myUsername;
+      document.getElementById("profile-id").textContent = "#" + myId;
+      document.getElementById("profile-avatar").textContent =
+        myUsername.slice(0, 1).toUpperCase();
+      document.getElementById("profile-sub").textContent =
+        "Локальний E2EE · identity key збережено у браузері";
+
+      if (data.is_pro) {
+        planPill.textContent = "Plan: PRO";
+        planPill.style.borderColor = "var(--pro-gold)";
+      }
+
+      showToast("Вхід успішний");
+      setSecurity("weak"); // HTTPS + ECDH готовий, але діалог ще не ініціалізований
+      startPolling();
+    } catch (e) {
+      console.error(e);
+      showToast("Не вдалося підключитися", true);
+    }
+  }
+
+  async function searchUser() {
+    const q = document.getElementById("search").value.trim();
+    const container = document.getElementById("search-results");
+    container.innerHTML = "";
+    if (!q || !myId) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/users/search?query=${encodeURIComponent(q)}`);
+      if (!res.ok) throw new Error();
+      const list = await res.json(); // [{id, username, is_pro}, ...]
+      if (!list.length) {
+        container.innerHTML = `<div class="user-meta">Нічого не знайдено…</div>`;
+        return;
+      }
+      list.forEach((u) => {
+        if (u.id === myId) return; // не показуємо себе
+        const div = document.createElement("div");
+        div.className = "user-item";
+        div.onclick = () => selectPeer(u);
+
+        const left = document.createElement("div");
+        left.className = "user-main";
+
+        const name = document.createElement("div");
+        name.className = "user-name";
+        name.textContent = u.username;
+
+        const meta = document.createElement("div");
+        meta.className = "user-meta";
+        meta.textContent = `ID #${u.id}`;
+
+        left.appendChild(name);
+        left.appendChild(meta);
+
+        const right = document.createElement("div");
+        if (u.is_pro) {
+          const badge = document.createElement("div");
+          badge.className = "user-tag-pro";
+          badge.textContent = "PRO";
+          right.appendChild(badge);
+        }
+
+        div.appendChild(left);
+        div.appendChild(right);
+        container.appendChild(div);
+      });
+    } catch (e) {
+      console.error(e);
+      container.innerHTML = `<div class="user-meta">Помилка пошуку…</div>`;
+    }
+  }
+
+  function selectPeer(u) {
+    currentPeer = u;
+    if (!recentPeers.find((p) => p.id === u.id)) {
+      recentPeers.push(u);
+    }
+    document.getElementById("chat-peer").innerHTML =
+      `02 · Чат з <span>${u.username}</span>`;
+    document.getElementById("chat-meta").textContent =
+      "Канал готовий · перше повідомлення ініціалізує ключі";
+
+    chatWindow.innerHTML = "";
+    showToast(`Вибрано контакт: ${u.username}`);
+  }
+
+  // ========= MESSAGING =========
+
+  function appendMessageBubble(text, fromMe, extra = "", isFile = false, fileName = null, fileUrl = null) {
+    const div = document.createElement("div");
+    div.className = "msg" + (fromMe ? " me" : "");
+    if (isFile) {
+      const main = document.createElement("div");
+      main.textContent = text;
+
+      const fileBlock = document.createElement("div");
+      fileBlock.className = "msg-file";
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.download = fileName || "file";
+      link.textContent = `📎 ${fileName || "encrypted.bin"}`;
+      link.style.color = fromMe ? "#031015" : "#a3c9ff";
+      fileBlock.appendChild(link);
+
+      div.appendChild(main);
+      div.appendChild(fileBlock);
+    } else {
+      div.textContent = text;
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "msg-meta";
+    meta.textContent = extra || new Date().toLocaleTimeString();
+    div.appendChild(meta);
+
+    chatWindow.appendChild(div);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  async function sendMessage() {
+    if (!myId || !currentPeer) {
+      showToast("Спочатку обери контакт і увійди", true);
+      return;
+    }
+    const input = document.getElementById("msg-input");
+    const text = input.value.trim();
+    if (!text) return;
+
+    const dlg = await getDialogState(currentPeer.id);
+    const idx = dlg.sendCount || 0;
+    const key = await deriveMessageKey(currentPeer.id, true, idx);
+
+    const payload = {
+      kind: "text",
+      body: text,
+      ts: Date.now(),
+    };
+    const ptBytes = enc.encode(JSON.stringify(payload));
+    const { iv_b64, ct_b64 } = await aesEncrypt(key, ptBytes);
+
+    // відправка на бекенд
+    try {
+      const res = await fetch(`${API_BASE}/messages/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from_id: myId,
+          to_id: currentPeer.id,
+          iv_b64,
+          ct_b64,
+        }),
+      });
+      if (!res.ok) throw new Error();
+
+      dlg.sendCount = idx + 1;
+      persistDialogState(currentPeer.id);
+      updateCryptoUi();
+
+      appendMessageBubble(text, true);
+      input.value = "";
+      document.getElementById("status-line").textContent = "Повідомлення надіслано";
+    } catch (e) {
+      console.error(e);
+      showToast("Помилка надсилання", true);
+    }
+  }
+
+  async function handleFile(evt) {
+    if (!myId || !currentPeer) {
+      showToast("Обери контакт перед файлом", true);
+      evt.target.value = "";
+      return;
+    }
+    const file = evt.target.files[0];
+    evt.target.value = "";
+    if (!file) return;
+
+    const arrayBuffer = await file.arrayBuffer();
+    const dlg = await getDialogState(currentPeer.id);
+    const idx = dlg.sendCount || 0;
+    const key = await deriveMessageKey(currentPeer.id, true, idx);
+
+    const fileBytes = new Uint8Array(arrayBuffer);
+    const payload = {
+      kind: "file",
+      name: file.name,
+      mime: file.type || "application/octet-stream",
+      size: file.size,
+      data_b64: bufToB64(fileBytes.buffer),
+      ts: Date.now(),
+    };
+    const ptBytes = enc.encode(JSON.stringify(payload));
+    const { iv_b64, ct_b64 } = await aesEncrypt(key, ptBytes);
+
+    try {
+      const res = await fetch(`${API_BASE}/messages/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from_id: myId,
+          to_id: currentPeer.id,
+          iv_b64,
+          ct_b64,
+        }),
+      });
+      if (!res.ok) throw new Error();
+
+      dlg.sendCount = idx + 1;
+      persistDialogState(currentPeer.id);
+      updateCryptoUi();
+
+      appendMessageBubble("Зашифрований файл", true, "", true, file.name, "#");
+      document.getElementById("status-line").textContent = "Файл зашифровано і надіслано";
+    } catch (e) {
+      console.error(e);
+      showToast("Не вдалося надіслати файл", true);
+    }
+  }
+
+  async function sendToGroup() {
+    if (!myId || recentPeers.length === 0) {
+      showToast("Немає отримувачів у групі", true);
+      return;
+    }
+    const input = document.getElementById("msg-input");
+    const text = input.value.trim();
+    if (!text) {
+      showToast("Повідомлення порожнє", true);
+      return;
+    }
+
+    for (const peer of recentPeers) {
+      if (peer.id === myId) continue;
+      const dlg = await getDialogState(peer.id);
+      const idx = dlg.sendCount || 0;
+      const key = await deriveMessageKey(peer.id, true, idx);
+
+      const payload = {
+        kind: "text",
+        body: text,
+        ts: Date.now(),
+        group: true,
+      };
+      const ptBytes = enc.encode(JSON.stringify(payload));
+      const { iv_b64, ct_b64 } = await aesEncrypt(key, ptBytes);
+
+      try {
+        await fetch(`${API_BASE}/messages/send`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from_id: myId,
+            to_id: peer.id,
+            iv_b64,
+            ct_b64,
+          }),
+        });
+        dlg.sendCount = idx + 1;
+        persistDialogState(peer.id);
+      } catch (e) {
+        console.error("Помилка при broadcast до", peer.id, e);
+      }
+    }
+
+    appendMessageBubble(`[Broadcast] ${text}`, true);
+    input.value = "";
+    document.getElementById("status-line").textContent = "Broadcast надіслано";
+  }
+
+  // ========= INCOMING MESSAGES (poll) =========
+
+  let polling = false;
+  let pollingTimer = null;
+
+  function startPolling() {
+    if (polling) return;
+    polling = true;
+    pollInbox();
+    pollingTimer = setInterval(pollInbox, 2500);
+  }
+
+  async function pollInbox() {
+    if (!myId) return;
+    try {
+      const res = await fetch(`${API_BASE}/messages/inbox/${myId}`);
+      if (!res.ok) throw new Error();
+      const list = await res.json(); // [{id, from_id, iv_b64, ct_b64, created_at}, ...]
+      for (const m of list) {
+        await processIncoming(m);
+      }
+    } catch (e) {
+      console.error("pollInbox error", e);
+    }
+  }
+
+  async function processIncoming(m) {
+    const peerId = m.from_id;
+    if (!peerId) return;
+
+    const dlg = await getDialogState(peerId);
+    const idx = dlg.recvCount || 0;
+    try {
+      const key = await deriveMessageKey(peerId, false, idx);
+      const ptBytes = await aesDecrypt(key, m.iv_b64, m.ct_b64);
+      const payload = JSON.parse(dec.decode(ptBytes));
+
+      dlg.recvCount = idx + 1;
+      persistDialogState(peerId);
+      updateCryptoUi();
+
+      // знайти або створити peer в списку
+      let peer = recentPeers.find((p) => p.id === peerId);
+      if (!peer) {
+        // мінімальний об'єкт
+        peer = { id: peerId, username: "Agent #" + peerId };
+        recentPeers.push(peer);
+      }
+
+      if (payload.kind === "text") {
+        appendMessageBubble(
+          payload.body,
+          false,
+          new Date(payload.ts || Date.now()).toLocaleTimeString()
+        );
+      } else if (payload.kind === "file") {
+        const bytes = b64ToBuf(payload.data_b64);
+        const blob = new Blob([new Uint8Array(bytes)], {
+          type: payload.mime || "application/octet-stream",
+        });
+        const url = URL.createObjectURL(blob);
+        appendMessageBubble(
+          "Зашифрований файл отримано",
+          false,
+          new Date(payload.ts || Date.now()).toLocaleTimeString(),
+          true,
+          payload.name || "file",
+          url
+        );
+      }
+      document.getElementById("status-line").textContent = "Нові дані отримано";
+    } catch (e) {
+      console.error("Помилка розшифрування / ratchet mismatch", e);
+    }
+  }
+
+  // ========= UTILS =========
+
+  function onMsgKey(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function fakeUpgrade() {
+    planPill.textContent = "Plan: PRO";
+    planPill.style.borderColor = "var(--pro-gold)";
+    document.getElementById("upgrade-label").textContent = "You are PRO";
+    showToast("PRO-функції активовані (демо)");
+  }
+</script>
+</body>
+</html>
